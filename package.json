@@ -1,0 +1,43 @@
+{
+  "name": "kogvio-desktop",
+  "productName": "Kogvio",
+  "version": "1.0.0",
+  "description": "Kogvio System-Wide AI Vision Copilot",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win --x64"
+  },
+  "author": "Harshit Kataria",
+  "license": "ISC",
+  "build": {
+    "appId": "com.kogvio.desktop",
+    "productName": "Kogvio",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Kogvio"
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "dependencies": {
+    "express": "^4.21.1"
+  }
+}
