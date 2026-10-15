@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kogvio | The System-Wide AI Vision Copilot</title>
+    
+    <link rel="icon" type="image/png" sizes="32x32" href="icon48.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon48.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icon48.png">
+    <link rel="shortcut icon" href="icon48.png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        kogvio: { light: '#E7CFFF', DEFAULT: '#B26BFF', dark: '#5B21B6', neon: '#E879F9' },
+                        base: { bg: '#000000', card: '#050208', border: '#1E122B', text: '#FFFFFF', muted: '#A1A1AA' }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-glow': 'pulseGlow 3s ease-in-out infinite alternate',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        pulseGlow: {
+                            '0%': { opacity: '0.3', transform: 'scale(1)' },
+                            '100%': { opacity: '0.6', transform: 'scale(1.05)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { 
+            background-color: #000000; color: #FFFFFF; overflow-x: hidden; 
+            -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; scroll-behavior: smooth;
+        }
+
+        /* --- FLAGSHIP DEEP PURPLE & BLACK AMBIENT SYSTEM --- */
+        .premium-bg {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #000000;
+            background-image: 
+                radial-gradient(circle at 15% 0%, rgba(91, 33, 182, 0.15), transparent 40%),
+                radial-gradient(circle at 85% 100%, rgba(178, 107, 255, 0.1), transparent 40%);
+            z-index: -3; pointer-events: none;
+        }
+
+        .noise-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: -2; opacity: 0.04;
+            background: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+        }
+
+        .subtle-grid {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 64px 64px;
+            mask-image: radial-gradient(ellipse at top center, black 40%, transparent 80%);
+            -webkit-mask-image: radial-gradient(ellipse at top center, black 40%, transparent 80%);
+            z-index: -2; pointer-events: none;
+        }
+
+        .hero-spotlight {
+            position: absolute; top: -20vh; left: 50%; transform: translateX(-50%);
+            width: 120vw; height: 70vh;
+            background: radial-gradient(ellipse at top, rgba(178, 107, 255, 0.2), transparent 60%);
+            z-index: -1; pointer-events: none;
+        }
+
+        /* --- ELITE BENTO CARDS --- */
+        .bento-card {
+            background: rgba(10, 5, 15, 0.6);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(226, 196, 255, 0.08);
+            border-top: 1px solid rgba(226, 196, 255, 0.15);
+            border-radius: 28px; overflow: hidden; position: relative;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease, border-color 0.4s ease;
+        }
+        
+        .bento-card:hover {
+            transform: translateY(-4px); background: rgba(15, 8, 22, 0.8);
+            border-color: rgba(226, 196, 255, 0.2); border-top-color: rgba(178, 107, 255, 0.5);
+            box-shadow: 0 30px 60px rgba(178, 107, 255, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .spotlight-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(178, 107, 255, 0.12), transparent 40%);
+            opacity: 0; transition: opacity 0.5s ease; pointer-events: none; z-index: 1;
+        }
+        .spotlight-card:hover::before { opacity: 1; }
+
+        /* --- HIGH-CONVERTING BUTTONS --- */
+        .btn-primary {
+            background: #FFFFFF; color: #07040A; font-weight: 700; border-radius: 999px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 0 24px rgba(255, 255, 255, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary:hover {
+            transform: scale(1.03) translateY(-2px); box-shadow: 0 12px 34px rgba(255, 255, 255, 0.3);
+        }
+        .btn-primary:active { transform: scale(0.97); }
+
+        .btn-secondary-hero {
+            background: rgba(178, 107, 255, 0.12); color: #FFFFFF; font-weight: 700;
+            border: 1px solid rgba(178, 107, 255, 0.4); border-radius: 999px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 0 25px rgba(178, 107, 255, 0.15);
+        }
+        .btn-secondary-hero:hover {
+            transform: scale(1.03) translateY(-2px); background: rgba(178, 107, 255, 0.22);
+            border-color: rgba(231, 207, 255, 0.6); box-shadow: 0 12px 34px rgba(178, 107, 255, 0.3);
+        }
+
+        .btn-premium {
+            background: linear-gradient(135deg, #E7CFFF, #B26BFF 45%, #7C2FE0);
+            color: #17012B; font-weight: 800; border-radius: 999px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 8px 25px rgba(178, 107, 255, 0.35), inset 0 1px 0 rgba(255,255,255,0.4);
+        }
+        .btn-premium:hover {
+            transform: scale(1.03) translateY(-2px); box-shadow: 0 15px 40px rgba(178, 107, 255, 0.5);
+            background: linear-gradient(135deg, #FFFFFF, #B26BFF 45%, #7C2FE0);
+        }
+        .btn-premium:active { transform: scale(0.97); }
+
+        .fade-up { opacity: 0; transform: translateY(40px); transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1); }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+        .mock-ui { pointer-events: none; user-select: none; }
+
+        /* --- FAQ STYLES --- */
+        .faq-grid { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .faq-grid.open { grid-template-rows: 1fr; }
+        .faq-inner { min-height: 0; overflow: hidden; opacity: 0; transition: opacity 0.4s ease; }
+        .faq-grid.open .faq-inner { opacity: 1; padding-top: 12px; }
+
+        /* --- BLOG STYLES --- */
+        .blog-article p { color: #A1A1AA; line-height: 1.8; margin-bottom: 1.75rem; font-size: 1.15rem; font-weight: 400; }
+        .blog-article h2 { color: #FFFFFF; font-size: 2.25rem; font-weight: 800; margin-top: 4rem; margin-bottom: 1.25rem; letter-spacing: -0.03em; }
+        .blog-article ul { list-style-type: none; padding-left: 0; margin-bottom: 2.5rem; }
+        .blog-article li { color: #A1A1AA; font-size: 1.15rem; line-height: 1.8; margin-bottom: 1rem; position: relative; padding-left: 1.75rem; }
+        .blog-article li::before { content: "✦"; color: #B26BFF; position: absolute; left: 0; font-weight: bold; }
+        .blog-article img { width: 100%; border-radius: 24px; border: 1px solid rgba(226,196,255,0.1); margin: 3rem 0; box-shadow: 0 30px 60px rgba(0,0,0,0.8); }
+    </style>
+</head>
+<body class="selection:bg-kogvio-DEFAULT selection:text-white relative">
+
+    <div class="premium-bg"></div>
+    <div class="subtle-grid"></div>
+    <div class="noise-overlay"></div>
+    <div class="hero-spotlight animate-pulse-glow"></div>
+    <canvas id="dust-canvas" class="fixed inset-0 z-[-2] pointer-events-none opacity-50"></canvas>
+
+    <nav id="main-nav" class="w-full fixed top-0 z-50 transition-all duration-500 border-b border-transparent bg-transparent">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between transition-all duration-300" id="nav-container">
+            <div class="flex items-center gap-3 cursor-pointer group" onclick="window.scrollTo(0,0)">
+                <img src="icon48.png" alt="Kogvio" class="w-8 h-8 object-contain group-hover:scale-105 transition-transform">
+                <span class="text-white font-extrabold tracking-tight text-2xl">Kogvio</span>
+            </div>
+
+            <div class="hidden md:flex gap-10 text-sm font-semibold text-base-muted">
+                <a href="#ecosystem" class="hover:text-white transition-colors">Ecosystem</a>
+                <a href="#features" class="hover:text-white transition-colors">Features</a>
+                <a href="#blog" class="hover:text-white transition-colors">The Method</a>
+                <a href="#pricing" class="hover:text-white transition-colors">Pricing</a>
+            </div>
+            
+            <div class="flex items-center gap-4" id="auth-buttons">
+                <button id="nav-dashboard-btn" class="hidden flex items-center gap-2.5 text-sm font-bold text-white bg-white/10 backdrop-blur-md border border-white/10 px-5 py-2 rounded-full hover:bg-white/20 transition-all group shadow-[0_0_20px_rgba(178,107,255,0.15)]">
+                    <div class="w-2 h-2 rounded-full bg-[#27C93F] shadow-[0_0_8px_rgba(39,201,63,0.8)] animate-pulse"></div>
+                    Workspace
+                </button>
+                
+                <div id="user-profile-button"></div>
+                <button id="login-btn" class="text-sm font-semibold text-base-muted hover:text-white transition-colors hidden sm:block">Log in</button>
+                <button id="get-started-btn" class="text-sm font-bold bg-[#1A0F2E] hover:bg-[#2C184A] text-white px-6 py-2.5 rounded-full transition-colors border border-kogvio-DEFAULT/30 shadow-lg">
+                    Get started
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- FLAGSHIP HERO SECTION -->
+    <main class="max-w-6xl mx-auto px-6 pt-48 pb-24 text-center flex flex-col items-center relative fade-up">
+        
+        <div class="mb-8 inline-flex items-center justify-center px-5 py-2 rounded-full border border-kogvio-DEFAULT/30 bg-kogvio-DEFAULT/10 backdrop-blur-md text-kogvio-light text-[11px] font-bold tracking-[0.2em] uppercase shadow-[0_0_20px_rgba(178,107,255,0.15)]">
+            <span class="w-1.5 h-1.5 rounded-full bg-kogvio-neon mr-3 animate-pulse"></span>
+            Kogvio Desktop App + Browser Extension Live
+        </div>
+
+        <h1 class="text-6xl md:text-[96px] font-black tracking-tighter leading-[1.04] mb-8 text-white drop-shadow-2xl">
+            Understand anything on<br>
+            <span class="text-transparent bg-clip-text bg-gradient-to-br from-[#FFFFFF] via-[#E7CFFF] to-[#B26BFF]">your entire PC.</span>
+        </h1>
+
+        <p class="text-xl md:text-2xl text-base-muted max-w-3xl mb-12 leading-relaxed font-medium tracking-tight">
+            Stop switching tabs. Press one hotkey to freeze your screen, draw a box over any messy code, diagram, or formula, and let Kogvio explain it right where you work.
+        </p>
+
+        <!-- System-Wide Shortcut Indicator -->
+        <div class="mb-12 flex flex-col sm:flex-row items-center justify-center gap-4 bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-md shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
+            <div class="flex items-center gap-2 text-kogvio-light">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                <span class="text-base font-bold tracking-wide">Trigger across any app or browser:</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <kbd class="px-3 py-1.5 bg-[#050208] border border-white/20 rounded-md text-sm font-bold text-white shadow-inner font-sans">Cmd/Ctrl</kbd>
+                <span class="text-[#8A7A9E] text-sm font-black">+</span>
+                <kbd class="px-3 py-1.5 bg-[#050208] border border-white/20 rounded-md text-sm font-bold text-white shadow-inner font-sans">Shift</kbd>
+                <span class="text-[#8A7A9E] text-sm font-black">+</span>
+                <kbd class="px-4 py-1.5 bg-kogvio-DEFAULT/25 border border-kogvio-DEFAULT/50 rounded-md text-sm font-bold text-white shadow-[0_0_15px_rgba(178,107,255,0.4)] font-sans">E</kbd>
+            </div>
+        </div>
+
+        <!-- Dual Action CTAs -->
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-6 mb-20 w-full max-w-2xl">
+            <a id="desktop-download-btn" href="YOUR_GITHUB_RELEASE_EXE_URL_HERE" class="btn-primary text-lg px-10 py-5 flex items-center justify-center gap-3 w-full sm:w-auto">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                <span>Download for Windows (.exe)</span>
+            </a>
+            
+            <a id="hero-action-btn" href="https://chromewebstore.google.com/detail/kogvio/mllapkmnhfgoblbcajnbniocicnahdnj" target="_blank" rel="noopener noreferrer" class="btn-secondary-hero text-lg px-10 py-5 flex items-center justify-center gap-3 w-full sm:w-auto">
+                <span id="hero-action-text">Add to Chrome — Free</span>
+                <svg id="hero-action-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="4"></circle><line x1="21.17" y1="8" x2="12" y2="8"></line><line x1="3.95" y1="6.06" x2="8.54" y2="14"></line><line x1="10.88" y1="21.94" x2="15.46" y2="14"></line></svg>
+            </a>
+        </div>
+
+        <!-- Social Proof Badges -->
+        <div class="mt-4 flex flex-col sm:flex-row items-center justify-center gap-8 w-full opacity-80 hover:opacity-100 transition-opacity duration-500">
+            <a href="https://launchbuff.com" target="_blank" rel="noopener noreferrer" class="hover:scale-105 transition-transform">
+              <img src="https://launchbuff.com/badge-featured-dark.svg" alt="Featured on LaunchBuff" width="256" height="80" />
+            </a>
+
+            <a href="https://www.producthunt.com/products/kogvio?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-kogvio" target="_blank" rel="noopener noreferrer" class="hover:scale-105 transition-transform">
+                <img alt="Kogvio on Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1200923&amp;theme=dark">
+            </a>
+        </div>
+    </main>
+
+    <!-- SYSTEM-WIDE ECOSYSTEM SECTION -->
+    <section id="ecosystem" class="max-w-7xl mx-auto px-6 pb-32 fade-up pt-16">
+        <div class="text-center mb-16">
+            <span class="text-kogvio-DEFAULT font-bold tracking-widest uppercase text-sm mb-4 inline-block">One Account. Total Coverage.</span>
+            <h2 class="text-4xl md:text-6xl font-black tracking-tighter mb-6 text-white">Break out of the browser.</h2>
+            <p class="text-base-muted text-xl max-w-3xl mx-auto leading-relaxed">Use the lightweight extension when reading online, or run the native desktop app to scan across absolutely any software on your machine.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Card 1: Desktop App -->
+            <div class="bento-card spotlight-card p-10 md:p-14 flex flex-col justify-between border-kogvio-DEFAULT/30">
+                <div>
+                    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-kogvio-DEFAULT/15 border border-kogvio-DEFAULT/30 text-kogvio-light text-xs font-bold mb-8 uppercase tracking-wide">
+                        <span>Windows Desktop App</span>
+                    </div>
+                    <h3 class="text-4xl font-bold text-white mb-6 tracking-tight">System-Wide OS Copilot</h3>
+                    <p class="text-base-muted text-lg leading-relaxed mb-8">Runs silently in your system tray. Hit <code class="text-white bg-white/10 px-2 py-0.5 rounded border border-white/20">Ctrl+Shift+E</code> over any desktop application to freeze the screen, crop multiple regions, and spawn a floating AI widget right next to your mouse.</p>
+                    <ul class="space-y-4 text-white text-base font-medium mb-10">
+                        <li class="flex items-center gap-4"><span class="text-kogvio-DEFAULT text-xl">✦</span> <strong>IDEs & Engines:</strong> VS Code, Unity, Unreal Engine, Blender</li>
+                        <li class="flex items-center gap-4"><span class="text-kogvio-DEFAULT text-xl">✦</span> <strong>Live Video & Calls:</strong> Snip slides directly from Zoom or VLC</li>
+                        <li class="flex items-center gap-4"><span class="text-kogvio-DEFAULT text-xl">✦</span> <strong>Local Files:</strong> Adobe Acrobat, Excel spreadsheets, & locked PDFs</li>
+                    </ul>
+                </div>
+                <a href="YOUR_GITHUB_RELEASE_EXE_URL_HERE" class="btn-secondary-hero py-4 px-8 text-center text-base">Download for Windows (.exe)</a>
+            </div>
+
+            <!-- Card 2: Browser Extension -->
+            <div class="bento-card spotlight-card p-10 md:p-14 flex flex-col justify-between">
+                <div>
+                    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/15 text-white text-xs font-bold mb-8 uppercase tracking-wide">
+                        <span>Chrome, Brave & Edge</span>
+                    </div>
+                    <h3 class="text-4xl font-bold text-white mb-6 tracking-tight">In-Browser Vision Overlay</h3>
+                    <p class="text-base-muted text-lg leading-relaxed mb-8">Zero-install overhead for your browser. Highlight dense academic papers, arXiv PDFs, GitHub repositories, or online lecture boards without ever opening a new tab.</p>
+                    <ul class="space-y-4 text-white text-base font-medium mb-10">
+                        <li class="flex items-center gap-4"><span class="text-kogvio-DEFAULT text-xl">✦</span> <strong>Research Papers:</strong> Decode methodology & math in-place</li>
+                        <li class="flex items-center gap-4"><span class="text-kogvio-DEFAULT text-xl">✦</span> <strong>Web Documentation:</strong> Stitch multi-tab API docs in the Context Tray</li>
+                        <li class="flex items-center gap-4"><span class="text-kogvio-DEFAULT text-xl">✦</span> <strong>Cloud Synced:</strong> Every browser scan saves to your Desktop Vault</li>
+                    </ul>
+                </div>
+                <a href="https://chromewebstore.google.com/detail/kogvio/mllapkmnhfgoblbcajnbniocicnahdnj" target="_blank" class="btn-primary py-4 px-8 text-center text-base">Get Chrome Extension</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FLAGSHIP FEATURES SECTION -->
+    <section id="features" class="max-w-7xl mx-auto px-6 pb-32 fade-up">
+        <div class="text-center mb-20">
+            <h2 class="text-5xl md:text-7xl font-black tracking-tighter mb-6 text-white">Built for deep focus.</h2>
+            <p class="text-base-muted text-xl max-w-2xl mx-auto tracking-tight">Everything you need to debug, solve, and understand. Nothing you don't.</p>
+        </div>
+
+        <!-- 1. CONTEXT TRAY -->
+        <div class="bento-card spotlight-card grid grid-cols-1 md:grid-cols-2 items-center gap-0 mb-8 overflow-hidden">
+            <div class="p-12 md:p-16 relative z-10">
+                <span class="text-kogvio-DEFAULT font-bold tracking-widest uppercase text-xs mb-4 inline-block drop-shadow-[0_0_10px_rgba(178,107,255,0.5)]">Multi-App Memory</span>
+                <h3 class="text-4xl md:text-5xl font-bold text-white mb-6 tracking-tight">The Context Tray</h3>
+                <p class="text-base-muted text-lg leading-relaxed mb-8">Add up to 10 snips across different apps at once—a terminal error in VS Code, a schematic in a PDF, and a documentation table in Chrome—and ask one question across all of them.</p>
+                <ul class="space-y-4 text-white text-base font-medium">
+                    <li class="flex items-center gap-3"><span class="text-kogvio-DEFAULT text-xl">✦</span> Combine snips from different apps and windows</li>
+                    <li class="flex items-center gap-3"><span class="text-kogvio-DEFAULT text-xl">✦</span> Ask one question that spans the whole tray</li>
+                </ul>
+            </div>
+            <div class="mock-ui p-8 md:p-12 h-full flex items-center relative z-10 bg-gradient-to-l from-black/60 to-transparent">
+                <div class="w-full bg-[#050208] border border-white/10 border-t-white/20 rounded-3xl p-8 shadow-[0_20px_50px_rgba(0,0,0,0.8)] transform transition-transform hover:scale-105 duration-500">
+                    <div class="text-xs font-bold text-base-muted mb-6 uppercase tracking-widest">Context Tray · 3 Snips Staged</div>
+                    <div class="flex gap-4 mb-8">
+                        <div class="w-24 h-24 rounded-2xl bg-gradient-to-br from-kogvio-DEFAULT/20 to-kogvio-dark/30 border border-kogvio-DEFAULT/40 flex items-center justify-center text-sm font-bold text-kogvio-light shadow-lg">VS Code</div>
+                        <div class="w-24 h-24 rounded-2xl bg-gradient-to-br from-kogvio-DEFAULT/20 to-kogvio-dark/30 border border-kogvio-DEFAULT/40 flex items-center justify-center text-sm font-bold text-kogvio-light shadow-lg">PDF Spec</div>
+                        <div class="w-24 h-24 rounded-2xl bg-gradient-to-br from-kogvio-DEFAULT/20 to-kogvio-dark/30 border border-kogvio-DEFAULT/40 flex items-center justify-center text-sm font-bold text-kogvio-light shadow-lg">Terminal</div>
+                    </div>
+                    <div class="text-base font-medium bg-gradient-to-r from-[#B26BFF] to-[#7C2FE0] text-white p-5 rounded-2xl rounded-tr-sm max-w-[95%] ml-auto shadow-[0_15px_30px_rgba(178,107,255,0.3)]">Why is this function throwing the error in snip 3 based on the spec in snip 2?</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. PRECISION INTENT MODES -->
+        <div class="bento-card spotlight-card grid grid-cols-1 md:grid-cols-2 items-center gap-0 mb-16 overflow-hidden">
+            <div class="mock-ui p-8 md:p-12 h-full flex items-center order-2 md:order-1 relative z-10 bg-gradient-to-r from-black/60 to-transparent">
+                <div class="w-full space-y-5">
+                    <div class="bg-[#050208] border border-white/10 rounded-2xl px-6 py-5 text-lg font-medium text-white flex items-center justify-between shadow-lg">
+                        <span>⚡ <strong>Solve Mode:</strong> Final answer on Line 1</span>
+                        <span class="text-kogvio-light text-base font-bold">↵</span>
+                    </div>
+                    <div class="bg-[#0A0514] border border-kogvio-DEFAULT/50 rounded-2xl px-6 py-5 text-lg font-bold text-white flex items-center justify-between shadow-[0_0_30px_rgba(178,107,255,0.25)] transform scale-[1.02]">
+                        <span>🛠️ <strong>Debug Mode:</strong> Ready-to-copy fixed code</span>
+                        <span class="text-kogvio-light text-base font-bold">↵</span>
+                    </div>
+                    <div class="bg-[#050208] border border-white/10 rounded-2xl px-6 py-5 text-lg font-medium text-white flex items-center justify-between shadow-lg">
+                        <span>✨ <strong>Explain Mode:</strong> Deep conceptual intuition</span>
+                        <span class="text-kogvio-light text-base font-bold">↵</span>
+                    </div>
+                </div>
+            </div>
+            <div class="p-12 md:p-16 order-1 md:order-2 relative z-10">
+                <span class="text-kogvio-DEFAULT font-bold tracking-widest uppercase text-xs mb-4 inline-block drop-shadow-[0_0_10px_rgba(178,107,255,0.5)]">Zero Conversational Fluff</span>
+                <h3 class="text-4xl md:text-5xl font-bold text-white mb-6 tracking-tight">4 Specialized Intent Modes</h3>
+                <p class="text-base-muted text-lg leading-relaxed mb-8">General AI chatbots waste time with polite introductions. Kogvio routes every snip through strict system instructions—Explain, Solve, Debug, or Custom Prompt—so you get the exact format you need on the first try.</p>
+                <ul class="space-y-4 text-white text-base font-medium">
+                    <li class="flex items-center gap-3"><span class="text-kogvio-DEFAULT text-xl">✦</span> One-click Explain, Solve, and Debug presets</li>
+                    <li class="flex items-center gap-3"><span class="text-kogvio-DEFAULT text-xl">✦</span> Custom Prompt box for targeted questions</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+            <div class="bento-card spotlight-card p-10 flex flex-col gap-5">
+                <div class="w-14 h-14 shrink-0 bg-white/5 border border-white/10 rounded-full flex items-center justify-center relative z-10">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E7CFFF" stroke-width="2.5" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                </div>
+                <div class="relative z-10 mt-2">
+                    <h4 class="text-white font-bold text-2xl mb-3 tracking-tight">Reads messy handwriting</h4>
+                    <p class="text-base-muted text-base leading-relaxed font-medium">Whiteboard formulas, scrawled lecture notes, and photos of physical pages come through cleanly.</p>
+                </div>
+            </div>
+
+            <div class="bento-card spotlight-card p-10 flex flex-col gap-5">
+                <div class="w-14 h-14 shrink-0 bg-white/5 border border-white/10 rounded-full flex items-center justify-center relative z-10">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E7CFFF" stroke-width="2.5"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5z"/><path d="M10 2v20"/></svg>
+                </div>
+                <div class="relative z-10 mt-2">
+                    <h4 class="text-white font-bold text-2xl mb-3 tracking-tight">Renders LaTeX and code</h4>
+                    <p class="text-base-muted text-base leading-relaxed font-medium">KaTeX math and VS Code syntax-highlighted blocks appear perfectly formatted with one-click copy buttons.</p>
+                </div>
+            </div>
+
+            <div class="bento-card spotlight-card p-10 flex flex-col gap-5">
+                <div class="w-14 h-14 shrink-0 bg-white/5 border border-white/10 rounded-full flex items-center justify-center relative z-10">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E7CFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                </div>
+                <div class="relative z-10 mt-2">
+                    <h4 class="text-white font-bold text-2xl mb-3 tracking-tight">Reads diagrams & node graphs</h4>
+                    <p class="text-base-muted text-base leading-relaxed font-medium">Flowcharts, Unity/Blender nodes, and architecture diagrams get explained step by step.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ELITE PRICING -->
+    <section id="pricing" class="max-w-5xl mx-auto px-6 pb-32 fade-up border-t border-white/10 relative z-10 pt-32">
+        <h2 class="text-5xl md:text-7xl font-black text-center mb-20 tracking-tighter text-white">Simple pricing.</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- FREE TIER -->
+            <div class="bento-card p-12 flex flex-col relative z-10">
+                <h3 class="text-3xl font-bold mb-2 text-white tracking-tight">Starter</h3>
+                <div class="text-7xl font-black mb-4 text-white tracking-tighter">₹0<span class="text-2xl text-base-muted font-bold tracking-normal">/mo</span></div>
+                <p class="text-base-muted mb-10 text-lg leading-relaxed flex-grow">Essential AI vision for quick daily tasks on web and desktop.</p>
+                <ul class="space-y-6 mb-14 text-white text-lg font-medium">
+                    <li class="flex items-center gap-4"><svg class="w-6 h-6 text-base-muted" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg> 5 AI scans per day</li>
+                    <li class="flex items-center gap-4"><svg class="w-6 h-6 text-base-muted" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg> Access to Windows App & Extension</li>
+                    <li class="flex items-center gap-4"><svg class="w-6 h-6 text-base-muted" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg> Explain, Solve & Debug modes</li>
+                </ul>
+                <button id="start-free-btn" class="w-full py-5 rounded-full bg-[#121214] hover:bg-[#1E1E24] border border-white/10 text-white font-bold transition-colors text-xl relative z-10">
+                    Start free
+                </button>
+            </div>
+
+            <!-- PRO TIER -->
+            <div class="bento-card spotlight-card p-12 flex flex-col border-kogvio-DEFAULT/40 relative z-10" style="background: rgba(15, 8, 22, 0.8);">
+                <div class="absolute inset-0 bg-gradient-to-b from-kogvio-DEFAULT/15 to-transparent opacity-60 pointer-events-none"></div>
+                <div class="absolute top-0 right-0 bg-white text-black text-xs font-black px-6 py-3 rounded-bl-3xl uppercase tracking-widest shadow-xl">Most popular</div>
+                
+                <h3 class="text-3xl font-bold mb-2 text-kogvio-light tracking-tight relative z-10">Kogvio Pro</h3>
+                <div class="text-7xl font-black mb-4 text-white tracking-tighter relative z-10">₹199<span class="text-2xl text-base-muted font-bold tracking-normal">/mo</span></div>
+                <p class="text-base-muted mb-10 text-lg leading-relaxed flex-grow relative z-10">High-volume scans, multi-app Context Tray, and permanent Workspace Vault folders.</p>
+                <ul class="space-y-6 mb-14 text-white text-lg font-medium relative z-10">
+                    <li class="flex items-center gap-4"><svg class="w-6 h-6 text-kogvio-DEFAULT drop-shadow-[0_0_10px_rgba(178,107,255,0.8)]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg> Unlimited daily AI scans</li>
+                    <li class="flex items-center gap-4"><svg class="w-6 h-6 text-kogvio-DEFAULT drop-shadow-[0_0_10px_rgba(178,107,255,0.8)]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg> Multi-App Context Tray & Memory</li>
+                    <li class="flex items-center gap-4"><svg class="w-6 h-6 text-kogvio-DEFAULT drop-shadow-[0_0_10px_rgba(178,107,255,0.8)]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg> Permanent Scan Vault & Custom Folders</li>
+                    <li class="flex items-center gap-4"><svg class="w-6 h-6 text-kogvio-DEFAULT drop-shadow-[0_0_10px_rgba(178,107,255,0.8)]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg> Unlimited follow-up chat history</li>
+                </ul>
+
+                <div class="flex flex-col items-center gap-4 relative z-10 w-full mt-auto">
+                    <button id="landing-upgrade-btn" class="w-full py-5 rounded-full btn-premium text-xl">
+                        Upgrade to Pro
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- BLOG SECTION -->
+    <section id="blog" class="max-w-3xl mx-auto px-6 pb-32 relative z-10 blog-article border-t border-white/10 pt-32 fade-up">
+        <div class="mb-16">
+            <div class="text-kogvio-light font-bold tracking-widest uppercase text-xs mb-6">Featured guide</div>
+            <h1 class="text-5xl md:text-6xl font-black tracking-tighter leading-[1.05] mb-6 text-white">How to decode complex papers, codebases, and docs without breaking flow.</h1>
+        </div>
+
+        <p>You settle yourself down to finally read that complex research paper or debug a new framework and tell yourself that you will concentrate and stay focused. Within minutes, you hit a wall of dense terminology, unfamiliar equations, or undocumented code.</p>
+        <p>What you normally do is highlight the text or take a screenshot, open a new browser tab, go to ChatGPT, paste it in, and request a simple explanation. You read the summary, switch back to your PDF or IDE, and spend ten seconds trying to remember where you left off.</p>
+        <p>Two minutes later, it happens again—another confusing diagram, another window switch, and another round of copy-and-paste.</p>
+        <p>By the time you realize it, forty-five minutes have gone by. Six different AI chat tabs are open, and you haven't even finished the first section. The mental energy spent managing windows and context-switching drains you faster than the actual work.</p>
+
+        <img src="blog-hero.png" alt="Clean PDF research paper with the Kogvio popup explaining text without switching tabs" class="fade-up">
+
+        <h2 class="fade-up">Why the copy-paste workflow is broken</h2>
+        <p>Most people rely on the copy-and-paste method: locate a difficult paragraph or error log, copy it, and paste it into a separate chat tab. And when you're working with visual elements—like Unity node graphs, pathology pathways, Zoom lecture slides, or hardware schematics—you can't even copy the text at all.</p>
+        <p>The issue isn't the intelligence of the AI; it's the interface. Isolating your AI assistant in a separate browser tab forces you to act as a manual courier between your workspace and the model.</p>
+
+        <h2 class="fade-up">The better workflow: understanding in context</h2>
+        <p>When you are reading a paper in Chrome or writing code in VS Code, the explanation belongs right beside the problem you are looking at. That is why I built Kogvio as both a browser extension and a native desktop copilot.</p>
+        <p>Instead of switching windows, you stay in place. Press <strong>Ctrl + Shift + E</strong>, drag a box over any part of your screen, and a sleek glassmorphic card appears right next to your cursor. You get a clean, formatted breakdown—complete with LaTeX math and syntax-highlighted code—then hit Escape and keep working.</p>
+
+        <img src="blog-highlight.png" alt="A confusing sentence highlighted with a simple translated response right alongside it" class="fade-up">
+
+        <h2 class="fade-up">How this looks in practice</h2>
+        <ul>
+            <li><strong>Research & Academia:</strong> Highlight a dense statistical model or biological pathway in a PDF and get an instant plain-English breakdown without losing your reading position.</li>
+            <li><strong>Software & Game Development:</strong> Stage your broken code from VS Code alongside your terminal stack trace or Unity Inspector in the Context Tray, and let Debug Mode generate the exact fix.</li>
+            <li><strong>Live Lectures & Meetings:</strong> When a professor or colleague flashes a complex slide on Zoom, snip it directly off the video feed and ask follow-up questions in real time.</li>
+        </ul>
+
+        <img src="blog-code.png" alt="Kogvio analyzing a medical diagram or complex C++ code block" class="fade-up">
+    </section>
+
+    <!-- Product Hunt Embed Section -->
+    <section class="max-w-3xl mx-auto px-6 pb-40 fade-up relative z-10 flex flex-col items-center justify-center border-t border-white/10 pt-32">
+        <h3 class="text-xl font-bold text-[#A1A1AA] mb-8 tracking-tight">Support us on Product Hunt</h3>
+        <div style="font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, sans-serif; border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 24px; max-width: 500px; background: #050505; width: 100%; box-shadow: 0 30px 60px rgba(0,0,0,0.8);">
+            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
+                <img alt="Kogvio" src="https://ph-files.imgix.net/b0cdfa2a-602c-47ba-b367-ff328c933a2d.png?auto=compress,format&amp;codec=mozjpeg&amp;cs=strip&amp;fit=crop&amp;h=80&amp;w=80" style="width: 72px; height: 72px; border-radius: 16px; object-fit: cover; flex-shrink: 0;">
+                <div style="flex: 1 1 0%; min-width: 0px;">
+                    <h3 style="margin: 0px; font-size: 20px; font-weight: 700; color: #FFFFFF; line-height: 1.3; white-space: nowrap;">Kogvio</h3>
+                    <p style="margin: 4px 0px 0px; font-size: 15px; color: #A1A1AA; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical;">Understand anything on your screen without leaving your workflow.</p>
+                </div>
+            </div>
+            <a href="https://www.producthunt.com/products/kogvio?embed=true&amp;utm_source=embed&amp;utm_medium=post_embed" target="_blank" rel="noopener" style="display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 16px; padding: 14px 20px; background: #FFFFFF; color: #000000; text-decoration: none; border-radius: 999px; font-size: 16px; font-weight: 700; transition: transform 0.2s ease;">Check it out on Product Hunt →</a>
+        </div>
+    </section>
+
+    <footer class="w-full border-t border-white/10 bg-[#000000] py-16 relative z-10">
+        <div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
+            <div class="flex items-center gap-3">
+                <img src="icon48.png" alt="Kogvio" class="w-6 h-6 object-contain opacity-90">
+                <span class="text-white font-extrabold tracking-tight text-xl">Kogvio</span>
+            </div>
+            <p class="text-[#A1A1AA] text-base font-medium">© 2026 Kogvio. Designed for deeper focus.</p>
+            <div class="flex flex-wrap justify-center gap-8 text-base font-medium text-[#A1A1AA]">
+                <a href="privacy.html" class="hover:text-white transition-colors">Privacy</a>
+                <a href="terms.html" class="hover:text-white transition-colors">Terms</a>
+                <a href="refund.html" class="hover:text-white transition-colors">Refunds</a>
+                <a href="mailto:kogvio.team@gmail.com" class="hover:text-white transition-colors">Contact</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('dust-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height, dustParticles;
+
+        let mouse = { x: -1000, y: -1000 };
+        window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+        window.addEventListener('mouseout', () => { mouse.x = -1000; mouse.y = -1000; });
+
+        function initDust() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            dustParticles = [];
+            for(let i = 0; i < 150; i++) {
+                dustParticles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    baseVx: (Math.random() - 0.5) * 0.2,
+                    baseVy: (Math.random() * -0.3) - 0.1,
+                    vx: 0,
+                    vy: 0,
+                    size: Math.random() * 1.5 + 0.5,
+                    alpha: Math.random() * 0.5 + 0.15
+                });
+                dustParticles[i].vx = dustParticles[i].baseVx;
+                dustParticles[i].vy = dustParticles[i].baseVy;
+            }
+        }
+        window.addEventListener('resize', initDust);
+
+        function drawDust() {
+            ctx.clearRect(0, 0, width, height);
+
+            dustParticles.forEach(p => {
+                let dx = mouse.x - p.x;
+                let dy = mouse.y - p.y;
+                let dist = Math.sqrt(dx * dx + dy * dy);
+                let maxDist = 120;
+
+                if (dist < maxDist) {
+                    let force = (maxDist - dist) / maxDist;
+                    p.vx -= (dx / dist) * force * 0.6;
+                    p.vy -= (dy / dist) * force * 0.6;
+                }
+
+                p.vx += (p.baseVx - p.vx) * 0.05;
+                p.vy += (p.baseVy - p.vy) * 0.05;
+
+                p.x += p.vx;
+                p.y += p.vy;
+
+                if (p.y < 0) { p.y = height; p.x = Math.random() * width; }
+                if (p.y > height) { p.y = 0; }
+                if (p.x < 0) p.x = width;
+                if (p.x > width) p.x = 0;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(200, 140, 255, ${p.alpha})`;
+                ctx.fill();
+            });
+            requestAnimationFrame(drawDust);
+        }
+        initDust();
+        drawDust();
+
+        // --- NAVBAR SCROLL ---
+        const mainNav = document.getElementById('main-nav');
+        const navContainer = document.getElementById('nav-container');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 20) {
+                mainNav.classList.remove('bg-transparent', 'border-transparent');
+                mainNav.classList.add('bg-[#07040A]/70', 'border-white/10', 'backdrop-blur-xl');
+                navContainer.classList.remove('h-20');
+                navContainer.classList.add('h-16');
+            } else {
+                mainNav.classList.remove('bg-[#07040A]/70', 'border-white/10', 'backdrop-blur-xl');
+                mainNav.classList.add('bg-transparent', 'border-transparent');
+                navContainer.classList.remove('h-16');
+                navContainer.classList.add('h-20');
+            }
+        });
+
+        // --- OBSERVER ---
+        const observer = new IntersectionObserver((entries, obs) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    obs.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.05, rootMargin: "0px 0px -50px 0px" });
+        document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+        // --- APP LOGIC & INSTANT AUTH ---
+        let isUserPremium = false;
+
+        const clerkPubKey = 'pk_live_Y2xlcmsua29ndmlvLmNvbSQ';
+        const script = document.createElement('script');
+        script.setAttribute('data-clerk-publishable-key', clerkPubKey);
+        script.async = true;
+        script.src = `https://cdn.jsdelivr.net/npm/@clerk/clerk-js@4/dist/clerk.browser.js`;
+        script.crossOrigin = 'anonymous';
+
+        script.addEventListener('load', async function () {
+            try {
+                await window.Clerk.load({});
+
+                const loginBtn = document.getElementById('login-btn');
+                const getStartedBtn = document.getElementById('get-started-btn');
+                const userProfileDiv = document.getElementById('user-profile-button');
+                const navDashboardBtn = document.getElementById('nav-dashboard-btn');
+
+                const heroActionBtn = document.getElementById('hero-action-btn');
+                const heroActionText = document.getElementById('hero-action-text');
+                const heroActionIcon = document.getElementById('hero-action-icon');
+
+                const blogActionBtn = document.getElementById('blog-action-btn');
+                const blogActionText = document.getElementById('blog-action-text');
+
+                const upgradeBtn = document.getElementById('landing-upgrade-btn');
+                const freeBtn = document.getElementById('start-free-btn');
+
+                if (window.Clerk.user) {
+                    if(loginBtn) loginBtn.style.display = 'none';
+                    if(getStartedBtn) getStartedBtn.style.display = 'none';
+                    window.Clerk.mountUserButton(userProfileDiv);
+
+                    if(navDashboardBtn) {
+                        navDashboardBtn.classList.remove('hidden');
+                        navDashboardBtn.onclick = () => window.location.href = 'dashboard.html';
+                    }
+                    if(heroActionBtn) {
+                        heroActionText.innerText = "Open Workspace";
+                        if(heroActionIcon) heroActionIcon.innerHTML = `<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>`;
+                        heroActionBtn.onclick = (e) => { e.preventDefault(); window.location.href = 'dashboard.html'; }
+                    }
+                    if(blogActionBtn && blogActionText) {
+                        blogActionText.innerText = "Open Workspace";
+                        blogActionBtn.onclick = (e) => { e.preventDefault(); window.location.href = 'dashboard.html'; }
+                    }
+                    if (freeBtn) {
+                        freeBtn.innerText = "Open Workspace";
+                        freeBtn.onclick = (e) => { e.preventDefault(); window.location.href = 'dashboard.html'; }
+                    }
+
+                    try {
+                        const token = await window.Clerk.session.getToken();
+                        fetch("https://aura-scholar-backend.onrender.com/api/history", {
+                            headers: { "Authorization": `Bearer ${token}` }
+                        }).then(res => {
+                            if(res.ok) return res.json();
+                            throw new Error("Failed");
+                        }).then(data => {
+                            isUserPremium = data.is_premium;
+                            if (isUserPremium) {
+                                if (upgradeBtn) {
+                                    upgradeBtn.innerText = "Go to Vault";
+                                    upgradeBtn.classList.add("shadow-[0_0_20px_rgba(178,107,255,0.5)]");
+                                    upgradeBtn.onclick = (e) => { e.preventDefault(); window.location.href = 'dashboard.html'; }
+                                }
+                            } else {
+                                if (upgradeBtn) {
+                                    upgradeBtn.onclick = (e) => {
+                                        e.preventDefault();
+                                        const clerkId = window.Clerk.user.id;
+                                        const rzpFullUrl = "https://rzp.io/rzp/VfzMqvb9";
+                                        window.open(`${rzpFullUrl}?notes[clerk_id]=${clerkId}`, '_blank');
+                                    }
+                                }
+                            }
+                        }).catch(e => console.error("Pricing check failed:", e));
+
+                    } catch (e) {
+                        console.error("Failed to fetch token", e);
+                    }
+
+                } else {
+                    if(loginBtn) loginBtn.onclick = () => window.Clerk.openSignIn({ redirectUrl: 'https://kogvio.com/dashboard.html' });
+                    if(getStartedBtn) getStartedBtn.onclick = () => window.Clerk.openSignUp({ redirectUrl: 'https://kogvio.com/dashboard.html' });
+
+                    if(heroActionBtn) heroActionBtn.onclick = null;
+                    if(blogActionBtn) blogActionBtn.onclick = null;
+
+                    if (upgradeBtn) {
+                        upgradeBtn.onclick = (e) => { e.preventDefault(); window.Clerk.openSignIn({ redirectUrl: 'https://kogvio.com/dashboard.html' }); }
+                    }
+
+                    if (freeBtn) {
+                        freeBtn.onclick = (e) => { e.preventDefault(); window.Clerk.openSignUp({ redirectUrl: 'https://kogvio.com/dashboard.html' }); }
+                    }
+                }
+            } catch (err) {
+                console.error("Clerk failed to initialize:", err);
+            }
+        });
+        document.body.appendChild(script);
+    </script>
+</body>
+</html>

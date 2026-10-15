@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Kogvio Copilot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        html, body {
+            margin: 0; padding: 0; width: 100vw; height: 100vh;
+            background: transparent; overflow: hidden;
+            font-family: 'Inter', -apple-system, sans-serif;
+            user-select: none;
+        }
+
+        @keyframes auraSlideUp {
+            0% { opacity: 0; transform: translateY(10px) scale(0.99); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #ai-scholar-card {
+            width: 100%; height: 100%;
+            display: flex; flex-direction: column; overflow: hidden;
+            animation: auraSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            background: rgba(12, 12, 14, 0.96);
+            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+        }
+
+        #ai-drag-header {
+            background: transparent; padding: 12px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            display: flex; justify-content: space-between; align-items: center;
+            -webkit-app-region: drag;
+        }
+        .no-drag { -webkit-app-region: no-drag; }
+
+        #ai-content-box {
+            padding: 16px 20px; flex: 1; overflow-y: auto; overflow-x: hidden;
+            line-height: 1.6; display: flex; flex-direction: column; user-select: text;
+        }
+        #ai-content-box::-webkit-scrollbar { width: 4px; }
+        #ai-content-box::-webkit-scrollbar-track { background: transparent; }
+        #ai-content-box::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+
+        #as-preview-container::-webkit-scrollbar { height: 6px; }
+        #as-preview-container::-webkit-scrollbar-track { background: transparent; }
+        #as-preview-container::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; }
+
+        #ai-followup-input::-webkit-scrollbar { width: 4px; }
+        #ai-followup-input::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+        #ai-followup-input:focus { background-color: rgba(255, 255, 255, 0.03) !important; }
+
+        #ai-send-btn { transition: transform 0.1s ease !important; }
+        #ai-send-btn:active:not(:disabled) { transform: scale(0.95); }
+
+        .aura-shimmer-line {
+            position: relative; overflow: hidden; background: rgba(255, 255, 255, 0.03);
+        }
+        .aura-shimmer-line::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+            animation: shimmer 1.5s infinite ease-in-out;
+        }
+
+        .chat-bubble-ai {
+            position: relative; color: #E4E4E7; padding: 0 4px 16px 4px;
+            margin: 8px 0 16px 0; width: 100%; animation: slideUpFade 0.2s ease forwards;
+            font-size: 13.5px; line-height: 1.6; text-align: left;
+        }
+
+        .typing-indicator {
+            display: flex; align-items: center; gap: 8px; padding: 8px 4px;
+            width: fit-content; margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div id="ai-scholar-card">
+        <!-- Header -->
+        <div id="ai-drag-header">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <img src="icon48.png" style="width:16px; height:16px; object-fit:contain; pointer-events:none;">
+                <span style="font-weight: 600; font-size: 13px; color: #E2E2E2; letter-spacing: 0.5px;">Kogvio</span>
+            </div>
+            <div class="no-drag" style="display:flex; gap:8px; align-items:center;">
+                <div id="ai-scan-new-btn" style="cursor:pointer; color:#A1A1AA; display:flex; align-items:center; padding:4px; border-radius:6px; transition:all 0.2s ease;" title="New Scan (Ctrl+Shift+E)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </div>
+                <div id="ai-close-card-btn" style="cursor:pointer; color:#A1A1AA; display:flex; align-items:center; padding:4px; border-radius:6px; transition:all 0.2s ease;" title="Close (Esc)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Box -->
+        <div id="ai-content-box"></div>
+
+        <!-- Bottom Chat Bar -->
+        <div id="ai-bottom-chat-bar" class="no-drag" style="padding:12px 16px; background:transparent; border-top:1px solid rgba(255,255,255,0.04); display:none; flex-direction:column; gap:8px;">
+            <div style="display:flex; gap:8px; align-items:flex-end; width:100%;">
+                <textarea id="ai-followup-input" placeholder="Ask a follow-up..." rows="1" style="flex:1; padding:8px 12px; height:36px; border-radius:8px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.02); color:white; outline:none; resize:none; max-height:100px; font-family:'Inter', sans-serif; font-size:13px; line-height:1.4; overflow-y:auto; transition: background 0.2s ease;"></textarea>
+                <button id="ai-send-btn" style="padding:0; width:36px; height:36px; background:#FFFFFF; color:#000000; border:none; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:11px; color:#A1A1AA; padding:0 4px; margin-top:2px;">
+                <span>Press <kbd style="background:rgba(255,255,255,0.1);padding:2px 4px;border-radius:4px;">Shift</kbd> + <kbd style="background:rgba(255,255,255,0.1);padding:2px 4px;border-radius:4px;">Enter</kbd></span>
+                <span id="report-issue-btn" style="cursor:pointer;transition:color 0.2s ease;">Report Issue</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const aiCard = document.getElementById('ai-scholar-card');
+        let currentImageB64 = "";
+        let chatHistory = [];
+        let currentScanId = 0;
+        let globalAbortController = null;
+        let aiIsThinking = false;
+        let userRequestedAbort = false;
+        let currentIntentMode = 'explain';
+        let currentScanTray = [];
+
+        const ICONS = {
+            explain: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>`,
+            solve: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+            debug: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>`,
+            custom: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>`
+        };
+
+        // Header Button Listeners
+        const closeBtn = document.getElementById('ai-close-card-btn');
+        closeBtn.addEventListener('mouseenter', () => { closeBtn.style.background = 'rgba(255,255,255,0.08)'; closeBtn.style.color = '#FFF'; });
+        closeBtn.addEventListener('mouseleave', () => { closeBtn.style.background = 'transparent'; closeBtn.style.color = '#A1A1AA'; });
+        closeBtn.addEventListener('click', () => window.electronAPI.closeSpotlight());
+
+        const scanBtn = document.getElementById('ai-scan-new-btn');
+        scanBtn.addEventListener('mouseenter', () => { scanBtn.style.background = 'rgba(255,255,255,0.08)'; scanBtn.style.color = '#FFF'; });
+        scanBtn.addEventListener('mouseleave', () => { scanBtn.style.background = 'transparent'; scanBtn.style.color = '#A1A1AA'; });
+        scanBtn.addEventListener('click', () => window.electronAPI.triggerSnip());
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') window.electronAPI.closeSpotlight();
+        });
+
+        // Receive Snip from Electron Main Process
+        window.electronAPI.onPrepareSpotlight((base64) => {
+            currentImageB64 = base64;
+            renderStagingArea();
+        });
+
+        function dataURLtoBlob(dataurl) {
+            let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+                bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+            while(n--) { u8arr[n] = bstr.charCodeAt(n); }
+            return new Blob([u8arr], {type:mime});
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag] || tag));
+        }
+
+        function resetInputUI() {
+            aiIsThinking = false;
+            userRequestedAbort = false;
+            const inputField = document.getElementById('ai-followup-input');
+            const sendBtn = document.getElementById('ai-send-btn');
+            if (inputField) {
+                inputField.disabled = false;
+                inputField.style.height = '36px';
+                inputField.focus();
+            }
+            if (sendBtn) {
+                sendBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`;
+                sendBtn.style.background = '#FFFFFF';
+                sendBtn.style.color = '#000000';
+                sendBtn.style.border = 'none';
+            }
+            aiCard.querySelectorAll('.typing-indicator, #as-loader').forEach(l => l.remove());
+        }
+
+        // Flagship Network Engine (Adapted for Electron IPC)
+        async function robustApiCall(endpoint, payload, isFormData, loaderTextElement, myScanId) {
+            let attempts = 0;
+            while (attempts < 3) {
+                if (myScanId !== currentScanId) throw new Error("CANCELLED_BY_NEW_SCAN");
+                if (userRequestedAbort) {
+                    userRequestedAbort = false;
+                    throw new Error("USER_ABORTED");
+                }
+                attempts++;
+
+                const token = await window.electronAPI.getAuthToken();
+                if (!token) throw new Error("AUTH_REQUIRED");
+
+                const options = {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${token}` }
+                };
+
+                if (isFormData) {
+                    options.body = payload;
+                } else {
+                    options.headers["Content-Type"] = "application/json";
+                    options.body = JSON.stringify(payload);
+                }
+
+                let timeoutId;
+                try {
+                    globalAbortController = new AbortController();
+                    timeoutId = setTimeout(() => { if (globalAbortController) globalAbortController.abort(); }, 55000);
+                    options.signal = globalAbortController.signal;
+
+                    const res = await fetch(`https://aura-scholar-backend.onrender.com${endpoint}`, options);
+                    clearTimeout(timeoutId);
+
+                    if (res.status === 401) throw new Error("AUTH_REQUIRED");
+                    if (!res.ok) {
+                        if (loaderTextElement && attempts === 1) loaderTextElement.innerText = "Waking up secure server...";
+                        await new Promise(r => setTimeout(r, 4000));
+                        continue;
+                    }
+                    const data = await res.json();
+
+                    if (userRequestedAbort) {
+                        userRequestedAbort = false;
+                        throw new Error("USER_ABORTED");
+                    }
+
+                    if (data.AI_Answer && data.AI_Answer.includes("⚠️")) {
+                        let exactError = data.AI_Answer.replace("⚠️", "").toLowerCase();
+                        if (exactError.includes("limit") || exactError.includes("busy") || exactError.includes("traffic") || exactError.includes("exhausted")) {
+                            if (loaderTextElement) loaderTextElement.innerText = "Processing complex data... (High Traffic)";
+                            await new Promise(r => setTimeout(r, 8000));
+                            continue;
+                        }
+                    }
+
+                    return data;
+                } catch (err) {
+                    clearTimeout(timeoutId);
+                    if (err.message === "AUTH_REQUIRED" || err.message === "CANCELLED_BY_NEW_SCAN") throw err;
+                    if (userRequestedAbort || err.name === 'AbortError' || (globalAbortController && globalAbortController.signal.aborted)) {
+                        if (userRequestedAbort) {
+                            userRequestedAbort = false;
+                            throw new Error("USER_ABORTED");
+                        }
+                        if (attempts >= 2) throw new Error("RENDER_COLD_START");
+                        if (loaderTextElement) loaderTextElement.innerText = "Booting AI Engine...";
+                    }
+                    await new Promise(r => setTimeout(r, 3000));
+                }
+            }
+            throw new Error("Unable to establish a stable connection. Please try again.");
+        }
+
+        function showAuthRequired(container, onAuthenticated) {
+            container.innerHTML = `
+                <div id="as-auth-card" style="background: rgba(24, 24, 27, 0.9); border: 1px solid rgba(255, 255, 255, 0.08); padding: 22px 18px; border-radius: 12px; margin: 12px 0; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; animation: auraSlideUp 0.3s ease forwards;">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#A64DFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 12px auto; display: block;">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <strong style="font-size: 14px; color: #FFFFFF; display: block; margin-bottom: 6px; font-weight: 600;">Authentication Required</strong>
+                    <span style="font-size: 12.5px; color: #A1A1AA; line-height: 1.5; display: block; margin-bottom: 16px;">Please log in inside your Kogvio Desktop Workspace to analyze screen snippets.</span>
+                    <button id="quick-reconnect-btn" style="background: #FFFFFF; color: #18181B; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        Open Workspace to Log In
+                    </button>
+                </div>
+            `;
+            const reconBtn = container.querySelector('#quick-reconnect-btn');
+            if (reconBtn) {
+                reconBtn.addEventListener('click', () => {
+                    window.electronAPI.focusMainWindow();
+                    reconBtn.innerHTML = `Waiting for Login...`;
+                    let checkAuth = setInterval(async () => {
+                        const token = await window.electronAPI.getAuthToken();
+                        if (token) {
+                            clearInterval(checkAuth);
+                            reconBtn.innerHTML = `✓ Connected! Resuming...`;
+                            reconBtn.style.backgroundColor = '#4ADE80';
+                            setTimeout(() => {
+                                if (typeof onAuthenticated === 'function') onAuthenticated();
+                                else renderStagingArea();
+                            }, 600);
+                        }
+                    }, 1500);
+                });
+            }
+        }
+
+        function forceShowError(msg) {
+            resetInputUI();
+            const previewContainer = aiCard.querySelector('#as-preview-container') || aiCard.querySelector('#ai-content-box');
+            if (previewContainer && !aiCard.querySelector('#initial-error-box')) {
+                let errorTitle = "Notice";
+                let displayMsg = msg;
+                let showUpgradeButton = false;
+
+                if (msg === "RENDER_COLD_START") {
+                    errorTitle = "Server Waking Up";
+                    displayMsg = "The secure Kogvio backend is spinning up. Please try your scan again shortly.";
+                } else if (msg.includes("Free scans exhausted")) {
+                    showUpgradeButton = true;
+                }
+
+                let errorHtml = `
+                    <div id="initial-error-box" style="background:rgba(255,77,77,0.05); border:1px solid rgba(255,77,77,0.2); color:#FF4D4D; padding:14px; border-radius:10px; margin:12px 0; text-align:left; width:100%;">
+                        <h4 style="color: #FF4D4D; font-weight: 500; font-size: 13px; margin: 0 0 6px 0; display: flex; align-items: center; gap: 6px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                            ${errorTitle}
+                        </h4>
+                        <span style="font-size:12px; color:#A1A1AA; line-height:1.5; display:block;">${displayMsg}</span>
+                `;
+
+                if (showUpgradeButton) {
+                    errorHtml += `
+                        <button id="ai-upgrade-btn" style="background: #FFFFFF; color: #000000; padding: 8px 14px; border-radius: 6px; cursor: pointer; margin-top: 12px; border: none; width: 100%; font-weight: 500; font-size: 12px;">
+                            Unlock Kogvio Pro (₹199)
+                        </button>
+                    `;
+                }
+                errorHtml += `</div>`;
+                previewContainer.insertAdjacentHTML('beforeend', errorHtml);
+                previewContainer.scrollTo({ top: previewContainer.scrollHeight, behavior: 'smooth' });
+
+                const upgradeBtn = document.getElementById('ai-upgrade-btn');
+                if (upgradeBtn) {
+                    upgradeBtn.onclick = async () => {
+                        const clerkId = await window.electronAPI.getClerkId();
+                        const rzpFullUrl = "https://rzp.io/rzp/El52QDPN";
+                        window.electronAPI.openExternal(clerkId ? `${rzpFullUrl}?notes[clerk_id]=${clerkId}` : "https://kogvio.com");
+                    };
+                }
+            }
+        }
+
+        // Staging Area & Context Tray
+        async function renderStagingArea() {
+            const contentBox = document.getElementById('ai-content-box');
+            const chatBar = document.getElementById('ai-bottom-chat-bar');
+            if (chatBar) chatBar.style.display = 'none';
+
+            let trayRes = { tray: [] };
+            try { trayRes = await window.electronAPI.getTray(); } catch (e) {}
+            currentScanTray = (trayRes && trayRes.tray) ? trayRes.tray : [];
+
+            let trayHtml = '';
+            if (currentScanTray.length > 0) {
+                trayHtml = `
+                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.04); overflow-x:auto; width:100%;">
+                        <span style="font-size:11px; color:#A1A1AA; white-space:nowrap; margin-right:4px;">Context Tray:</span>
+                        ${currentScanTray.map((img) => `<img src="${img}" style="width:36px; height:36px; border-radius:4px; border:1px solid rgba(255,255,255,0.1); object-fit:cover;">`).join('')}
+                        <button id="clear-tray-btn" style="background:transparent; border:none; color:#FF4D4D; cursor:pointer; font-size:11px; margin-left:auto; text-decoration:underline;">Clear</button>
+                    </div>
+                `;
+            }
+
+            contentBox.innerHTML = `
+                <div id="staging-container" style="display:flex; flex-direction:column; width:100%;">
+                    ${trayHtml}
+                    <div style="background: rgba(0,0,0,0.4); border-radius: 10px; padding: 12px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: center; align-items: center; box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);">
+                        <img src="${currentImageB64}" style="max-width:100%; max-height:160px; border-radius:4px; object-fit:contain;">
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:8px; width:100%;">
+                        <button id="add-tray-btn" style="background:rgba(166,77,255,0.1); border:1px solid rgba(166,77,255,0.3); color:#E2E2E2; padding:10px 14px; border-radius:10px; cursor:pointer; text-align:center; transition:all 0.2s ease; display:flex; justify-content:center; align-items:center; gap:8px; width:100%; font-weight:600; font-size:13px; margin-bottom:4px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A64DFF" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> 
+                            Add to Context Tray
+                        </button>
+                        <button class="staging-btn" data-mode="explain" data-prompt="Explain the core concepts in this image with absolute clarity.">
+                            <div class="st-icon">${ICONS.explain}</div>
+                            <div class="st-text">
+                                <span class="st-title">Explain Concept</span>
+                                <span class="st-desc">Break down intuition and variables</span>
+                            </div>
+                        </button>
+                        <button class="staging-btn" data-mode="solve" data-prompt="Solve the problem shown in this image. Provide the final answer directly.">
+                            <div class="st-icon">${ICONS.solve}</div>
+                            <div class="st-text">
+                                <span class="st-title">Solve Problem</span>
+                                <span class="st-desc">Step-by-step mathematical solution</span>
+                            </div>
+                        </button>
+                        <button class="staging-btn" data-mode="debug" data-prompt="Debug the code or error in this image. Provide the corrected code and root cause.">
+                            <div class="st-icon">${ICONS.debug}</div>
+                            <div class="st-text">
+                                <span class="st-title">Debug Code</span>
+                                <span class="st-desc">Find errors and generate fixed syntax</span>
+                            </div>
+                        </button>
+                        <button id="staging-custom-trigger" class="staging-btn">
+                            <div class="st-icon">${ICONS.custom}</div>
+                            <div class="st-text">
+                                <span class="st-title">Custom Prompt...</span>
+                                <span class="st-desc">Ask a specific question</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div id="staging-custom-box" style="display:none; width:100%; margin-top:12px; animation: slideUpFade 0.2s ease;">
+                        <textarea id="staging-custom-input" placeholder="What do you want to know?" rows="2" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.3); color:#FFF; outline:none; resize:none; font-family:'Inter', sans-serif; font-size:13px; margin-bottom:8px; transition: border-color 0.2s ease;"></textarea>
+                        <div style="display:flex; justify-content:flex-end;">
+                            <button id="staging-custom-submit" style="padding:6px 14px; background:#FFFFFF; color:#000000; border:none; border-radius:6px; font-weight:500; font-size:12px; cursor:pointer;">Send →</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const addTrayBtn = document.getElementById('add-tray-btn');
+            if (addTrayBtn) {
+                addTrayBtn.addEventListener('mouseenter', () => { addTrayBtn.style.background = 'rgba(166,77,255,0.2)'; });
+                addTrayBtn.addEventListener('mouseleave', () => { addTrayBtn.style.background = 'rgba(166,77,255,0.1)'; });
+                addTrayBtn.onclick = async () => {
+                    if (currentScanTray.length >= 10) {
+                        alert("Context Tray full (maximum 10 images). Please clear the tray or analyze current snippets.");
+                        return;
+                    }
+                    await window.electronAPI.addToTray(currentImageB64);
+                    window.electronAPI.closeSpotlight();
+                };
+            }
+
+            const clearTrayBtn = document.getElementById('clear-tray-btn');
+            if (clearTrayBtn) {
+                clearTrayBtn.onclick = async () => {
+                    await window.electronAPI.clearTray();
+                    renderStagingArea();
+                };
+            }
+
+            contentBox.querySelectorAll('.staging-btn, #staging-custom-trigger').forEach(btn => {
+                if (btn.id !== 'add-tray-btn') {
+                    btn.style.cssText = 'background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04); padding:10px 14px; border-radius:10px; cursor:pointer; text-align:left; transition:all 0.2s ease; display:flex; align-items:center; gap:12px; width:100%;';
+                    btn.querySelector('.st-icon').style.cssText = 'width:28px; height:28px; border-radius:6px; background:rgba(255,255,255,0.04); display:flex; align-items:center; justify-content:center; color:#A1A1AA; flex-shrink:0;';
+                    btn.querySelector('.st-text').style.cssText = 'display:flex; flex-direction:column; overflow:hidden;';
+                    btn.querySelector('.st-title').style.cssText = 'font-size:13px; font-weight:500; color:#E2E2E2; line-height:1.2;';
+                    btn.querySelector('.st-desc').style.cssText = 'font-size:11px; color:#71717A; margin-top:2px;';
+
+                    btn.addEventListener('mouseenter', () => {
+                        btn.style.background = 'rgba(255,255,255,0.05)';
+                        btn.style.borderColor = 'rgba(255,255,255,0.1)';
+                        btn.querySelector('.st-icon').style.color = '#FFF';
+                    });
+                    btn.addEventListener('mouseleave', () => {
+                        btn.style.background = 'rgba(255,255,255,0.02)';
+                        btn.style.borderColor = 'rgba(255,255,255,0.04)';
+                        btn.querySelector('.st-icon').style.color = '#A1A1AA';
+                    });
+                }
+            });
+
+            contentBox.querySelectorAll('.staging-btn').forEach(btn => {
+                if (btn.id !== 'staging-custom-trigger' && btn.id !== 'add-tray-btn') {
+                    btn.onclick = () => executeScan(btn.dataset.mode, btn.dataset.prompt);
+                }
+            });
+
+            const customTrigger = document.getElementById('staging-custom-trigger');
+            const customBox = document.getElementById('staging-custom-box');
+            const customInput = document.getElementById('staging-custom-input');
+            const customSubmit = document.getElementById('staging-custom-submit');
+
+            if (customInput) {
+                customInput.addEventListener('focus', () => { customInput.style.borderColor = 'rgba(166, 77, 255, 0.5)'; });
+                customInput.addEventListener('blur', () => { customInput.style.borderColor = 'rgba(255,255,255,0.1)'; });
+                customInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); customSubmit.click(); } });
+            }
+            if (customTrigger && customBox) {
+                customTrigger.onclick = () => { customBox.style.display = 'block'; customInput.focus(); customTrigger.style.display = 'none'; };
+            }
+            if (customSubmit) {
+                customSubmit.onclick = () => { const prompt = customInput.value.trim(); if (prompt) executeScan('custom', prompt); };
+            }
+        }
+
+        async function executeScan(mode, customPrompt) {
+            currentScanId = Date.now();
+            const myScanId = currentScanId;
+            currentIntentMode = mode;
+
+            const contentBox = document.getElementById('ai-content-box');
+            const chatBar = document.getElementById('ai-bottom-chat-bar');
+
+            let loaderHtml = `
+                <div id="as-preview-container" style="margin-bottom:20px; width:100%; display:flex; gap:8px; overflow-x:auto; padding-bottom: 8px;">
+                    ${currentScanTray.map(img => `<img src="${img}" style="max-height:100px; border-radius:6px; border:1px solid rgba(255,255,255,0.05); object-fit:contain; flex-shrink: 0;">`).join('')}
+                    <img src="${currentImageB64}" style="max-height:100px; border-radius:6px; border:1px solid rgba(166,77,255,0.4); object-fit:contain; flex-shrink: 0;">
+                </div>
+                <div id="as-loader" style="width:100%; padding: 0 8px;">
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+                        <div style="width:12px; height:12px; border:2px solid rgba(166,77,255,0.2); border-top-color:#A64DFF; border-radius:50%; animation:spin 1s linear infinite;"></div>
+                        <div id="scan-status-text" style="color:#A1A1AA; font-weight:400; font-size:12px;">Analyzing context...</div>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                        <div class="aura-shimmer-line" style="height:8px; width:100%; border-radius:4px;"></div>
+                        <div class="aura-shimmer-line" style="height:8px; width:85%; border-radius:4px;"></div>
+                        <div class="aura-shimmer-line" style="height:8px; width:65%; border-radius:4px;"></div>
+                    </div>
+                </div>
+                <div id="as-auth-slot"></div>
+            `;
+
+            contentBox.innerHTML = loaderHtml;
+            if (chatBar) chatBar.style.display = 'flex';
+
+            const inputArea = document.getElementById('ai-followup-input');
+            const sendBtn = document.getElementById('ai-send-btn');
+            if (inputArea) inputArea.disabled = true;
+            if (sendBtn) {
+                aiIsThinking = true;
+                sendBtn.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="1.5"></rect></svg>';
+                sendBtn.style.background = 'transparent';
+                sendBtn.style.border = '1px solid rgba(255,255,255,0.1)';
+                sendBtn.style.color = '#A1A1AA';
+            }
+
+            chatHistory = [];
+            const formData = new FormData();
+            const allImages = currentScanTray.concat([currentImageB64]);
+            allImages.forEach((b64, index) => {
+                formData.append('files', dataURLtoBlob(b64), `scan_${index}.png`);
+            });
+            formData.append('prompt', customPrompt);
+            formData.append('mode', mode);
+
+            const loaderText = document.getElementById('scan-status-text');
+
+            try {
+                const data = await robustApiCall("/analyze-image", formData, true, loaderText, myScanId);
+                if (myScanId !== currentScanId) return;
+                resetInputUI();
+
+                await window.electronAPI.clearTray();
+                currentScanTray = [];
+
+                if (data.AI_Answer) {
+                    if (data.AI_Answer.includes("⚠️")) {
+                        let exactError = data.AI_Answer.replace("⚠️", "").trim();
+                        forceShowError(exactError);
+                    } else {
+                        chatHistory.push({ role: "user", text: customPrompt });
+                        chatHistory.push({ role: "model", text: data.AI_Answer });
+
+                        document.getElementById('as-loader')?.remove();
+
+                        const promptHtml = `<div style="display:flex; justify-content:flex-end; margin: 8px 0 16px 0; width:100%;"><div style="background:rgba(255,255,255,0.06); color:#FFF; padding:8px 14px; border-radius:12px 12px 2px 12px; max-width:85%; font-size:13.5px; line-height:1.5; white-space:pre-wrap; border: 1px solid rgba(255,255,255,0.04);">${escapeHTML(customPrompt)}</div></div>`;
+                        contentBox.insertAdjacentHTML('beforeend', promptHtml);
+                        updateAICard(data.AI_Answer, true);
+                    }
+                } else {
+                    forceShowError("Server returned a blank answer.");
+                }
+            } catch (err) {
+                if (myScanId !== currentScanId) return;
+                if (err.message === "USER_ABORTED") { resetInputUI(); return; }
+                if (err.message === "AUTH_REQUIRED") {
+                    resetInputUI();
+                    document.getElementById('as-loader')?.remove();
+                    const authSlot = document.getElementById('as-auth-slot');
+                    showAuthRequired(authSlot || contentBox, () => executeScan(mode, customPrompt));
+                } else {
+                    forceShowError(err.message);
+                }
+            }
+        }
+
+        // Follow-Up Chat Input & Send
+        const inputField = document.getElementById('ai-followup-input');
+        const sendBtn = document.getElementById('ai-send-btn');
+
+        inputField.addEventListener('input', function() {
+            this.style.height = '36px';
+            this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+            if (this.value === '') this.style.height = '36px';
+        });
+
+        const handleSend = async () => {
+            if (aiIsThinking) {
+                userRequestedAbort = true;
+                if (globalAbortController) globalAbortController.abort();
+                return;
+            }
+
+            let rawUserText = inputField.value.trim();
+            if (!rawUserText) return;
+            if (rawUserText.length > 8000) rawUserText = rawUserText.substring(0, 8000) + "\n...[Text Truncated]";
+
+            const contentBox = document.getElementById('ai-content-box');
+            contentBox.insertAdjacentHTML('beforeend', `
+                <div style="display:flex; justify-content:flex-end; margin: 8px 0 16px 0; width:100%;">
+                    <div style="background:rgba(255,255,255,0.06); color:#FFF; padding:8px 14px; border-radius:12px 12px 2px 12px; max-width:85%; font-size:13.5px; line-height:1.5; white-space:pre-wrap; border: 1px solid rgba(255,255,255,0.04);">${escapeHTML(rawUserText)}</div>
+                </div>
+            `);
+
+            inputField.value = '';
+            inputField.style.height = '36px';
+            inputField.disabled = true;
+
+            aiIsThinking = true;
+            sendBtn.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="1.5"></rect></svg>';
+            sendBtn.style.background = 'transparent';
+            sendBtn.style.border = '1px solid rgba(255,255,255,0.1)';
+            sendBtn.style.color = '#A1A1AA';
+
+            const loadingId = 'loading-' + Date.now();
+            contentBox.insertAdjacentHTML('beforeend', `
+                <div id="${loadingId}" class="typing-indicator">
+                    <div style="width:12px; height:12px; border:2px solid rgba(255,255,255,0.1); border-top-color:#FFF; border-radius:50%; animation:spin 1s linear infinite;"></div>
+                </div>
+            `);
+            contentBox.scrollTo({ top: contentBox.scrollHeight, behavior: 'smooth' });
+
+            const recentHistory = chatHistory.slice(-2);
+            const allImagesForChat = currentScanTray.concat([currentImageB64]);
+            const payload = { images_b64: allImagesForChat, history: recentHistory, prompt: rawUserText };
+
+            try {
+                const data = await robustApiCall("/chat", payload, false, null, currentScanId);
+                document.getElementById(loadingId)?.remove();
+                resetInputUI();
+
+                if (data.AI_Answer) {
+                    if (data.AI_Answer.includes("⚠️")) {
+                        forceShowError(data.AI_Answer.replace("⚠️", "").trim());
+                    } else {
+                        chatHistory.push({ role: "user", text: rawUserText });
+                        chatHistory.push({ role: "model", text: data.AI_Answer });
+                        updateAICard(data.AI_Answer, true);
+                    }
+                } else {
+                    forceShowError("Server returned a blank answer.");
+                }
+            } catch (err) {
+                if (err.message === "CANCELLED_BY_NEW_SCAN") return;
+                document.getElementById(loadingId)?.remove();
+                resetInputUI();
+                if (err.message === "AUTH_REQUIRED") {
+                    const authBoxId = 'auth-' + Date.now();
+                    contentBox.insertAdjacentHTML('beforeend', `<div id="${authBoxId}"></div>`);
+                    showAuthRequired(document.getElementById(authBoxId), () => handleSend());
+                } else if (err.message !== "USER_ABORTED") {
+                    forceShowError(err.message);
+                }
+                contentBox.scrollTo({ top: contentBox.scrollHeight, behavior: 'smooth' });
+            }
+        };
+
+        sendBtn.onclick = () => handleSend();
+        inputField.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (sendBtn.innerText.includes('Send')) sendBtn.click();
+                else handleSend();
+            }
+        });
+
+        // Report Issue Logic
+        const reportBtn = document.getElementById('report-issue-btn');
+        let isReporting = false;
+        let oldOnclick = null;
+        reportBtn.addEventListener('mouseenter', () => reportBtn.style.color = isReporting ? '#A1A1AA' : '#FF4D4D');
+        reportBtn.addEventListener('mouseleave', () => reportBtn.style.color = isReporting ? '#FF4D4D' : '#A1A1AA');
+        reportBtn.addEventListener('click', () => {
+            const contentBox = document.getElementById('ai-content-box');
+            if (isReporting) {
+                isReporting = false;
+                reportBtn.innerText = 'Report Issue'; reportBtn.style.color = '#A1A1AA';
+                inputField.placeholder = 'Ask a follow-up...'; inputField.value = '';
+                sendBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`;
+                sendBtn.style.background = '#FFFFFF'; sendBtn.style.color = '#000000'; sendBtn.style.border = 'none';
+                sendBtn.onclick = oldOnclick;
+            } else {
+                isReporting = true;
+                reportBtn.innerText = 'Cancel Report'; reportBtn.style.color = '#FF4D4D';
+                inputField.placeholder = "Describe the bug..."; inputField.focus();
+                oldOnclick = sendBtn.onclick;
+                sendBtn.innerText = 'Send'; sendBtn.style.background = '#EF4444';
+                sendBtn.style.border = 'none'; sendBtn.style.color = 'white';
+
+                sendBtn.onclick = async () => {
+                    const reportText = inputField.value.trim();
+                    if (!reportText) return;
+                    sendBtn.innerText = '...';
+                    let successMessage = "✓ Issue reported. Thank you!";
+                    let isError = false;
+                    try {
+                        const response = await fetch("https://aura-scholar-backend.onrender.com/api/report", {
+                            method: "POST", headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ message: reportText, context: chatHistory.length > 0 ? chatHistory[chatHistory.length - 1].text : "Initial Desktop Scan" })
+                        });
+                        const data = await response.json();
+                        if (data.status === "error") { isError = true; successMessage = `⚠️ Backend Error: ${data.detail}`; }
+                    } catch (e) { isError = true; successMessage = "⚠️ Network error sending report."; }
+
+                    isReporting = false;
+                    reportBtn.innerText = 'Report Issue'; reportBtn.style.color = '#A1A1AA';
+                    inputField.value = ''; inputField.placeholder = 'Ask a follow-up...'; inputField.style.height = '36px';
+                    sendBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`;
+                    sendBtn.style.background = '#FFFFFF'; sendBtn.style.color = '#000000'; sendBtn.style.border = 'none';
+                    sendBtn.onclick = oldOnclick;
+
+                    const bgColor = isError ? "rgba(239,68,68,0.1)" : "rgba(74,222,128,0.1)";
+                    const textColor = isError ? "#EF4444" : "#4ADE80";
+                    const borderColor = isError ? "rgba(239,68,68,0.2)" : "rgba(74,222,128,0.2)";
+                    contentBox.insertAdjacentHTML('beforeend', `<div style="font-size:12px; color:${textColor}; text-align:center; margin:12px 0; background:${bgColor}; padding:10px; border-radius:6px; border:1px solid ${borderColor}; width:100%;">${successMessage}</div>`);
+                    contentBox.scrollTo({ top: contentBox.scrollHeight, behavior: 'smooth' });
+                };
+            }
+        });
+
+        function applyVSCodeTheme(code, language) {
+            if (language && (language.toLowerCase() === 'csv' || language.toLowerCase() === 'json')) {
+                return code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            }
+            let text = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            let placeholders = []; let pId = 0;
+            text = text.replace(/(&quot;.*?&quot;|&#39;.*?&#39;|".*?"|'.*?'|`.*?`)/g, match => {
+                placeholders.push({ id: `__STR_${pId}__`, val: `<span style="color: #A3E635;">${match}</span>` });
+                return `__STR_${pId++}__`;
+            });
+            text = text.replace(/(#.*|\/\/.*)/g, match => {
+                placeholders.push({ id: `__COM_${pId}__`, val: `<span style="color: #71717A; font-style: italic;">${match}</span>` });
+                return `__COM_${pId++}__`;
+            });
+            text = text.replace(/\b(def|class|return|if|else|elif|for|while|import|from|try|except|catch|const|let|var|function|await|async|True|False|None|print|console)\b/g, '<span style="color: #C084FC;">$1</span>');
+            text = text.replace(/\b([a-zA-Z_]\w*)(?=\()/g, '<span style="color: #60A5FA;">$1</span>');
+            text = text.replace(/\b(\d+(\.\d+)?)\b/g, '<span style="color: #FBBF24;">$1</span>');
+            placeholders.forEach(p => { text = text.replace(p.id, p.val); });
+            return text;
+        }
+
+        function updateAICard(text, append = false) {
+            const contentBox = document.getElementById('ai-content-box');
+            if (!contentBox) return;
+
+            let formattedText = typeof text !== 'string' ? "Sorry, I received an unexpected data format." : text;
+
+            try {
+                let codeBlocks = [];
+                formattedText = formattedText.replace(/```([a-zA-Z0-9_]*)[ \t]*\r?\n([\s\S]*?)```/g, function(match, language, code) {
+                    codeBlocks.push({ language, code });
+                    return `__KOGVIO_CODE_BLOCK_${codeBlocks.length - 1}__`;
+                });
+
+                formattedText = formattedText.replace(/\$\$([\s\S]*?)\$\$/g, function(match, math) {
+                    try { return katex.renderToString(math, { displayMode: true, throwOnError: false }); }
+                    catch (e) { return match; }
+                });
+
+                formattedText = formattedText.replace(/(?:\\\[|\\\(|\$)(.*?)(?:\\\]|\\\)|\$)/g, function(match, math) {
+                    if (match === '$') return match;
+                    try { return katex.renderToString(math, { displayMode: false, throwOnError: false }); }
+                    catch (e) { return match; }
+                });
+
+                formattedText = formattedText.replace(/`([^`]+)`/g, '<code style="background: rgba(255, 255, 255, 0.06); color: #E2E2E2; padding: 2px 4px; border-radius: 4px; font-family: monospace; font-size: 12.5px; border: 1px solid rgba(255,255,255,0.04);">$1</code>');
+                formattedText = formattedText.replace(/^### (.*$)/gm, '<h3 style="margin: 20px 0 8px 0; color: #FFFFFF; font-size: 14px; font-weight: 600;">$1</h3>');
+                formattedText = formattedText.replace(/^## (.*$)/gm, '<h2 style="margin: 24px 0 12px 0; color: #FFFFFF; font-size: 16px; font-weight: 600; letter-spacing:-0.2px;">$1</h2>');
+                formattedText = formattedText.replace(/^\s*[\*\-]\s+(.*)$/gm, '<li style="margin-left: 18px; margin-bottom: 8px; list-style-type: disc; color: #D4D4D8;">$1</li>');
+                formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong style="color: #FFFFFF; font-weight: 600;">$1</strong>');
+                formattedText = formattedText.replace(/\*(.*?)\*/g, '<em style="font-style:italic; color:#A1A1AA;">$1</em>');
+                formattedText = formattedText.replace(/\n/g, '<br>');
+                formattedText = formattedText.replace(/<\/li><br>/g, '</li>').replace(/<\/h2><br>/g, '</h2>').replace(/<\/h3><br>/g, '</h3>').replace(/<\/div><br>/g, '</div>');
+
+                codeBlocks.forEach((block, index) => {
+                    const styledCode = applyVSCodeTheme(block.code, block.language);
+                    const copyCodeBtnId = `copy-code-${Date.now()}-${index}`;
+                    const html = `<div style="background: #09090B; border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; margin: 16px 0; overflow: hidden; text-align: left; position: relative; width: 100%;">
+                        <div style="background: rgba(255,255,255,0.02); padding: 6px 12px; font-size: 11px; color: #A1A1AA; border-bottom: 1px solid rgba(255,255,255,0.04); font-weight: 500; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-family:'JetBrains Mono', monospace;">${block.language || 'text'}</span>
+                            <button id="${copyCodeBtnId}" data-code="${encodeURIComponent(block.code)}" style="background: transparent; border: none; color: #A1A1AA; padding: 2px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Copy
+                            </button>
+                        </div>
+                        <div style="margin: 0; padding: 14px; overflow-x: auto; line-height: 1.6; width: 100%; white-space: pre; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: #E4E4E7;">${styledCode}</div>
+                    </div>`;
+                    formattedText = formattedText.replace(`__KOGVIO_CODE_BLOCK_${index}__`, html);
+                });
+            } catch (parserError) {
+                formattedText = `<p style="color: #E4E4E7; font-size:13.5px; line-height:1.6;">${text.replace(/\n/g, '<br>')}</p>`;
+            }
+
+            const msgId = 'msg-' + Date.now();
+            const copyBtnId = 'copy-' + Date.now();
+
+            const messageHTML = `
+                <div class="chat-bubble-ai">
+                    <div style="display:flex; justify-content:flex-end; margin-bottom:-10px; position:relative; z-index:10;">
+                        <button id="${copyBtnId}" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); color:#A1A1AA; border-radius:4px; padding:2px 6px; font-size:10px; cursor:pointer;">Copy</button>
+                    </div>
+                    <div id="${msgId}">${formattedText}</div>
+                </div>`;
+
+            if (append) {
+                contentBox.insertAdjacentHTML('beforeend', messageHTML);
+                const newBubble = contentBox.lastElementChild;
+                if (newBubble) contentBox.scrollTo({ top: newBubble.offsetTop - 15, behavior: 'smooth' });
+            } else {
+                contentBox.innerHTML = messageHTML;
+                contentBox.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            const copyBtn = document.getElementById(copyBtnId);
+            if (copyBtn) {
+                copyBtn.addEventListener('click', () => {
+                    const textToCopy = document.getElementById(msgId).innerText;
+                    navigator.clipboard.writeText(textToCopy);
+                    copyBtn.innerText = 'Copied'; copyBtn.style.color = '#FFF';
+                    setTimeout(() => { copyBtn.innerText = 'Copy'; copyBtn.style.color = '#A1A1AA'; }, 2000);
+                });
+            }
+
+            document.querySelectorAll('button[id^="copy-code-"]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const rawData = decodeURIComponent(this.getAttribute('data-code'));
+                    navigator.clipboard.writeText(rawData);
+                    const originalText = this.innerHTML;
+                    this.innerHTML = "Copied"; this.style.color = '#FFF';
+                    setTimeout(() => { this.innerHTML = originalText; this.style.color = '#A1A1AA'; }, 2000);
+                });
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kogvio | Study Faster.</title>
+    
+    <!-- FAVICON & MOBILE ICON SETTINGS -->
+    <link rel="icon" type="image/png" sizes="32x32" href="icon48.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon48.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icon48.png">
+    <link rel="shortcut icon" href="icon48.png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- PayPal SDK -->
+    <script src="https://www.paypal.com/ncp/payment/434MRNXD8CBYE"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { 
+                        sans: ['Inter', 'sans-serif'] 
+                    },
+                    colors: {
+                        kogvio: {
+                            light: '#E7CFFF',
+                            DEFAULT: '#B26BFF',
+                            dark: '#5B21B6',
+                            neon: '#E879F9'
+                        },
+                        base: {
+                            bg: '#000000', 
+                            card: '#050208', 
+                            border: '#1E122B',
+                            text: '#FFFFFF',
+                            muted: '#A395B5' 
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-glow': 'pulseGlow 3s ease-in-out infinite alternate',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        pulseGlow: {
+                            '0%': { opacity: '0.3', transform: 'scale(1)' },
+                            '100%': { opacity: '0.6', transform: 'scale(1.05)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { 
+            background-color: #000000; 
+            color: #FFFFFF; 
+            overflow-x: hidden; 
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            scroll-behavior: smooth;
+        }
+
+        /* --- FLAGSHIP DEEP PURPLE & BLACK AMBIENT SYSTEM --- */
+        .premium-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #000000;
+            background-image: 
+                radial-gradient(circle at 15% 0%, rgba(91, 33, 182, 0.15), transparent 40%),
+                radial-gradient(circle at 85% 100%, rgba(178, 107, 255, 0.1), transparent 40%);
+            z-index: -3;
+            pointer-events: none;
+        }
+
+        .noise-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: -2; opacity: 0.04;
+            background: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+        }
+
+        .subtle-grid {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 64px 64px;
+            mask-image: radial-gradient(ellipse at top center, black 40%, transparent 80%);
+            -webkit-mask-image: radial-gradient(ellipse at top center, black 40%, transparent 80%);
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        .hero-spotlight {
+            position: absolute; top: -20vh; left: 50%; transform: translateX(-50%);
+            width: 120vw; height: 70vh;
+            background: radial-gradient(ellipse at top, rgba(178, 107, 255, 0.2), transparent 60%);
+            z-index: -1; pointer-events: none;
+        }
+
+        /* --- ELITE BENTO CARDS --- */
+        .bento-card {
+            background: rgba(10, 5, 15, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(226, 196, 255, 0.08);
+            border-top: 1px solid rgba(226, 196, 255, 0.15);
+            border-radius: 28px;
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease, border-color 0.4s ease;
+        }
+        
+        .bento-card:hover {
+            transform: translateY(-4px);
+            background: rgba(15, 8, 22, 0.8);
+            border-color: rgba(226, 196, 255, 0.2);
+            border-top-color: rgba(178, 107, 255, 0.5);
+            box-shadow: 0 30px 60px rgba(178, 107, 255, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .spotlight-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(178, 107, 255, 0.12), transparent 40%);
+            opacity: 0; transition: opacity 0.5s ease; pointer-events: none; z-index: 1;
+        }
+        .spotlight-card:hover::before { opacity: 1; }
+
+        /* --- HIGH-CONVERTING BUTTONS --- */
+        .btn-primary {
+            background: #FFFFFF;
+            color: #07040A;
+            font-weight: 700;
+            border-radius: 999px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 0 24px rgba(255, 255, 255, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary:hover {
+            transform: scale(1.03) translateY(-2px);
+            box-shadow: 0 12px 34px rgba(255, 255, 255, 0.3);
+        }
+        .btn-primary:active { transform: scale(0.97); }
+
+        .btn-premium {
+            background: linear-gradient(135deg, #E7CFFF, #B26BFF 45%, #7C2FE0);
+            color: #17012B;
+            font-weight: 800;
+            border-radius: 999px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 8px 25px rgba(178, 107, 255, 0.35), inset 0 1px 0 rgba(255,255,255,0.4);
+        }
+        .btn-premium:hover {
+            transform: scale(1.03) translateY(-2px);
+            box-shadow: 0 15px 40px rgba(178, 107, 255, 0.5);
+            background: linear-gradient(135deg, #FFFFFF, #B26BFF 45%, #7C2FE0);
+        }
+        .btn-premium:active { transform: scale(0.97); }
+
+        /* --- ENTRANCE ANIMATIONS --- */
+        .fade-up {
+            opacity: 0; transform: translateY(40px);
+            transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+        
+        .mock-ui { pointer-events: none; user-select: none; }
+
+        /* --- FAQ STYLES --- */
+        .faq-grid { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .faq-grid.open { grid-template-rows: 1fr; }
+        .faq-inner { min-height: 0; overflow: hidden; opacity: 0; transition: opacity 0.4s ease; }
+        .faq-grid.open .faq-inner { opacity: 1; padding-top: 12px; }
+
+        /* --- BLOG STYLES --- */
+        .blog-article p { color: #C3B4D9; line-height: 1.8; margin-bottom: 1.75rem; font-size: 1.15rem; font-weight: 400; }
+        .blog-article h2 { color: #FFFFFF; font-size: 2.25rem; font-weight: 800; margin-top: 4rem; margin-bottom: 1.25rem; letter-spacing: -0.03em; }
+        .blog-article ul { list-style-type: none; padding-left: 0; margin-bottom: 2.5rem; }
+        .blog-article li { color: #C3B4D9; font-size: 1.15rem; line-height: 1.8; margin-bottom: 1rem; position: relative; padding-left: 1.75rem; }
+        .blog-article li::before { content: "✦"; color: #B26BFF; position: absolute; left: 0; font-weight: bold; }
+        .blog-article img { width: 100%; border-radius: 24px; border: 1px solid rgba(226,196,255,0.1); margin: 3rem 0; box-shadow: 0 30px 60px rgba(0,0,0,0.8); }
+    </style>
+</head>
+<body class="selection:bg-kogvio-DEFAULT selection:text-white relative">
+
+    <div class="premium-bg"></div>
+    <div class="subtle-grid"></div>
+    <div class="noise-overlay"></div>
+    <div class="hero-spotlight animate-pulse-glow"></div>
+    <canvas id="dust-canvas" class="fixed inset-0 z-[-2] pointer-events-none opacity-50"></canvas>
+
+    <nav id="main-nav" class="w-full fixed top-0 z-50 transition-all duration-500 border-b border-transparent bg-transparent">
+        <div class="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between transition-all duration-300" id="nav-container">
+            <div class="flex items-center gap-3 cursor-pointer group" onclick="window.scrollTo(0,0)">
+                <img src="icon48.png" alt="Kogvio" class="w-7 h-7 object-contain group-hover:scale-105 transition-transform">
+                <span class="text-white font-extrabold tracking-tight text-xl">Kogvio</span>
+            </div>
+
+            <div class="hidden md:flex gap-10 text-sm font-semibold text-base-muted">
+                <a href="#demo" class="hover:text-white transition-colors">How it works</a>
+                <a href="#features" class="hover:text-white transition-colors">Features</a>
+                <a href="#blog" class="hover:text-white transition-colors">Blog</a>
+                <a href="#pricing" class="hover:text-white transition-colors">Pricing</a>
+                <a href="#faq" class="hover:text-white transition-colors">FAQ</a>
+            </div>
+            
+            <div class="flex items-center gap-4" id="auth-buttons">
+                <button id="nav-dashboard-btn" class="hidden flex items-center gap-2.5 text-sm font-bold text-white bg-white/10 backdrop-blur-md border border-white/10 px-5 py-2 rounded-full hover:bg-white/20 transition-all group shadow-[0_0_20px_rgba(178,107,255,0.15)]">
+                    <div class="w-2 h-2 rounded-full bg-[#27C93F] shadow-[0_0_8px_rgba(39,201,63,0.8)] animate-pulse"></div>
+                    Dashboard
+                </button>
+                
+                <div id="user-profile-button"></div>
+                <button id="login-btn" class="text-sm font-semibold text-base-muted hover:text-white transition-colors hidden sm:block">Log in</button>
+                <button id="get-started-btn" class="text-sm font-bold bg-[#1A0F2E] hover:bg-[#2C184A] text-white px-6 py-2.5 rounded-full transition-colors border border-kogvio-DEFAULT/30 shadow-lg">
+                    Get started
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- FLAGSHIP HERO SECTION -->
+    <main class="max-w-5xl mx-auto px-6 pt-48 pb-24 text-center flex flex-col items-center relative fade-up">
+        
+        <div class="mb-10 inline-flex items-center justify-center px-4 py-1.5 rounded-full border border-kogvio-DEFAULT/30 bg-kogvio-DEFAULT/10 backdrop-blur-md text-kogvio-light text-[11px] font-bold tracking-[0.2em] uppercase shadow-[0_0_20px_rgba(178,107,255,0.15)]">
+            <span class="w-1.5 h-1.5 rounded-full bg-kogvio-neon mr-3 animate-pulse"></span>
+            Kogvio Vision 1.1 is Live
+        </div>
+
+        <h1 class="text-5xl md:text-[90px] font-black tracking-tighter leading-[1.05] mb-6 text-white drop-shadow-2xl">
+            Stop switching tabs to<br>
+            <span class="text-transparent bg-clip-text bg-gradient-to-br from-[#FFFFFF] via-[#E7CFFF] to-[#B26BFF]">understand it.</span>
+        </h1>
+
+        <p class="text-lg md:text-2xl text-base-muted max-w-3xl mb-12 leading-relaxed font-medium tracking-tight">
+            Highlight the handwriting, diagram, or dense paragraph you're stuck on. Kogvio explains it right there on the page — no new tab, no copy-paste.
+        </p>
+
+        <!-- Premium Mac-Style Shortcut Indicator -->
+        <div class="mb-12 flex flex-col sm:flex-row items-center justify-center gap-4 bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-md shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
+            <div class="flex items-center gap-2 text-kogvio-light">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                <span class="text-sm font-bold tracking-wide">Stay in flow. Launch instantly:</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <kbd class="px-3 py-1 bg-[#050208] border border-white/20 rounded-md text-sm font-bold text-white shadow-inner font-sans">Cmd/Ctrl</kbd>
+                <span class="text-[#8A7A9E] text-sm font-black">+</span>
+                <kbd class="px-3 py-1 bg-[#050208] border border-white/20 rounded-md text-sm font-bold text-white shadow-inner font-sans">Shift</kbd>
+                <span class="text-[#8A7A9E] text-sm font-black">+</span>
+                <kbd class="px-3 py-1 bg-kogvio-DEFAULT/25 border border-kogvio-DEFAULT/50 rounded-md text-sm font-bold text-white shadow-[0_0_15px_rgba(178,107,255,0.4)] font-sans">E</kbd>
+            </div>
+        </div>
+
+        <a id="hero-action-btn" href="https://chromewebstore.google.com/detail/kogvio/mllapkmnhfgoblbcajnbniocicnahdnj" target="_blank" rel="noopener noreferrer" class="btn-primary text-[17px] px-10 py-5 flex items-center justify-center gap-3 mb-16">
+            <span id="hero-action-text">Add to Chrome — it's free</span>
+            <svg id="hero-action-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        </a>
+
+        <!-- Social Proof Badges -->
+        <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-8 w-full opacity-80 hover:opacity-100 transition-opacity duration-500">
+            <a href="https://launchbuff.com" target="_blank" rel="noopener noreferrer" class="hover:scale-105 transition-transform">
+              <img src="https://launchbuff.com/badge-featured-dark.svg" alt="Featured on LaunchBuff" width="256" height="80" />
+            </a>
+
+            <a href="https://www.producthunt.com/products/kogvio?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-kogvio" target="_blank" rel="noopener noreferrer" class="hover:scale-105 transition-transform">
+                <img alt="Kogvio on Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1200923&amp;theme=dark">
+            </a>
+        </div>
+    </main>
+
+    <!-- DEMO VIDEO SECTION -->
+    <section id="demo" class="max-w-6xl mx-auto px-6 pb-32 flex justify-center relative z-10 fade-up">
+        <div class="w-full bento-card p-2 shadow-[0_40px_100px_rgba(178,107,255,0.2)] animate-float border-kogvio-DEFAULT/20">
+            <div class="w-full h-12 bg-[#050208]/80 rounded-t-[24px] border-b border-white/5 flex items-center px-5 gap-2.5">
+                <div class="w-3.5 h-3.5 rounded-full bg-[#FF5F56] border border-white/10"></div>
+                <div class="w-3.5 h-3.5 rounded-full bg-[#FFBD2E] border border-white/10"></div>
+                <div class="w-3.5 h-3.5 rounded-full bg-[#27C93F] border border-white/10"></div>
+            </div>
+            <div class="w-full aspect-video bg-[#000000] rounded-b-[24px] overflow-hidden relative">
+                <video src="kogvio-demo.mp4" autoplay loop muted playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+            </div>
+        </div>
+    </section>
+
+    <!-- FLAGSHIP FEATURES SECTION -->
+    <section id="features" class="max-w-7xl mx-auto px-6 pb-32 fade-up">
+        <div class="text-center mb-20">
+            <h2 class="text-5xl md:text-7xl font-black tracking-tighter mb-6 text-white">Everything you need, nothing you have to open.</h2>
+            <p class="text-base-muted text-xl max-w-2xl mx-auto tracking-tight">Two features do the heavy lifting. The rest quietly makes every scan faster.</p>
+        </div>
+
+        <!-- 1. CONTEXT TRAY -->
+        <div class="bento-card spotlight-card grid grid-cols-1 md:grid-cols-2 items-center gap-0 mb-8 overflow-hidden">
+            <div class="p-12 md:p-16 relative z-10">
+                <span class="text-kogvio-DEFAULT font-bold tracking-widest uppercase text-xs mb-4 inline-block drop-shadow-[0_0_10px_rgba(178,107,255,0.5)]">New Feature</span>
+                <h3 class="text-4xl font-bold text-white mb-6 tracking-tight">Context Tray</h3>
+                <p class="text-base-muted text-lg leading-relaxed mb-8">Add several images to the tray at once — pages of handwritten notes, a diagram and its caption, three screenshots of the same error — and ask one question across all of them. Kogvio reads them together instead of one at a time.</p>
+                <ul class="space-y-4 text-white text-base font-medium">
+                    <li class="flex items-center gap-3"><span class="text-kogvio-DEFAULT text-xl">✦</span> Drop in as many images as the question needs</li>
+                    <li class="flex items-center gap-3"><span class="text-kogvio-DEFAULT text-xl">✦</span> Ask one question that spans the whole tray</li>
+                    <li class="flex items-center gap-3"><span class="text-kogvio-DEFAULT text-xl">✦</span> Remove or swap images without losing the thread</li>
+                </ul>
+            </div>
+            <div class="mock-ui p-8 md:p-12 h-full flex items-center relative z-10 bg-gradient-to-l from-black/60 to-transparent">
+                <div class="w-full bg-[#050208] border border-white/10 border-t-white/20 rounded-3xl p-6 shadow-[0_20px_50px_rgba(0,0,0,0.8)] transform transition-transform hover:scale-105 duration-500">
+                    <div class="text-xs font-bold text-base-muted mb-4 uppercase tracking-widest">Context Tray · 3 images</div>
+                    <div class="flex gap-3 mb-6">
+                        <div class="w-20 h-20 rounded-xl bg-gradient-to-br from-kogvio-DEFAULT/20 to-kogvio-dark/30 border border-kogvio-DEFAULT/40 flex items-center justify-center text-xs font-bold text-kogvio-light shadow-lg">Pg. 1</div>
+                        <div class="w-20 h-20 rounded-xl bg-gradient-to-br from-kogvio-DEFAULT/20 to-kogvio-dark/30 border border-kogvio-DEFAULT/40 flex items-center justify-center text-xs font-bold text-kogvio-light shadow-lg">Pg. 2</div>
+                        <div class="w-20 h-20 rounded-xl bg-gradient-to-br from-kogvio-DEFAULT/20 to-kogvio-dark/30 border border-kogvio-DEFAULT/40 flex items-center justify-center text-xs font-bold text-kogvio-light shadow-lg">Pg. 3</div>
+                        <div class="w-20 h-20 rounded-xl border-2 border-dashed border-white/10 flex items-center justify-center text-2xl text-base-muted">+</div>
+                    </div>
+                    <div class="text-sm font-medium bg-gradient-to-r from-[#B26BFF] to-[#7C2FE0] text-white p-4 rounded-2xl rounded-tr-sm max-w-[92%] ml-auto shadow-[0_15px_30px_rgba(178,107,255,0.3)]">Do these three pages agree on the final formula?</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. CUSTOM PROMPTS -->
+        <div class="bento-card spotlight-card grid grid-cols-1 md:grid-cols-2 items-center gap-0 mb-16 overflow-hidden">
+            <div class="mock-ui p-8 md:p-12 h-full flex items-center order-2 md:order-1 relative z-10 bg-gradient-to-r from-black/60 to-transparent">
+                <div class="w-full space-y-4">
+                    <div class="bg-[#050208] border border-white/10 rounded-2xl px-5 py-4 text-base font-medium text-white flex items-center justify-between shadow-lg">
+                        <span>Explain like I'm reviewing for finals</span>
+                        <span class="text-kogvio-light text-sm font-bold">↵</span>
+                    </div>
+                    <div class="bg-[#0A0514] border border-kogvio-DEFAULT/50 rounded-2xl px-5 py-4 text-base font-bold text-white flex items-center justify-between shadow-[0_0_30px_rgba(178,107,255,0.25)] transform scale-[1.02]">
+                        <span>Convert this to pseudocode</span>
+                        <span class="text-kogvio-light text-sm font-bold">↵</span>
+                    </div>
+                    <div class="bg-[#050208] border border-white/10 rounded-2xl px-5 py-4 text-base font-medium text-white flex items-center justify-between shadow-lg">
+                        <span>Simplify for a first-year student</span>
+                        <span class="text-kogvio-light text-sm font-bold">↵</span>
+                    </div>
+                </div>
+            </div>
+            <div class="p-12 md:p-16 order-1 md:order-2 relative z-10">
+                <span class="text-kogvio-DEFAULT font-bold tracking-widest uppercase text-xs mb-4 inline-block drop-shadow-[0_0_10px_rgba(178,107,255,0.5)]">New Feature</span>
+                <h3 class="text-4xl font-bold text-white mb-6 tracking-tight">Custom Prompts</h3>
+                <p class="text-base-muted text-lg leading-relaxed mb-8">Save the questions you ask over and over — "explain like I'm reviewing for finals," "convert to pseudocode," "summarize in three bullets" — and fire them off with one click instead of retyping them every time you highlight something new.</p>
+                <ul class="space-y-4 text-white text-base font-medium">
+                    <li class="flex items-center gap-3"><span class="text-kogvio-DEFAULT text-xl">✦</span> Save unlimited prompt templates</li>
+                    <li class="flex items-center gap-3"><span class="text-kogvio-DEFAULT text-xl">✦</span> Apply a saved prompt in one click</li>
+                    <li class="flex items-center gap-3"><span class="text-kogvio-DEFAULT text-xl">✦</span> Edit or delete templates anytime</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 6 SUPPORTING FEATURES -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            
+            <div class="bento-card spotlight-card p-8 flex flex-col gap-4">
+                <div class="w-12 h-12 shrink-0 bg-white/5 border border-white/10 rounded-full flex items-center justify-center relative z-10">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E7CFFF" stroke-width="2.5" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                </div>
+                <div class="relative z-10 mt-2">
+                    <h4 class="text-white font-bold text-xl mb-2 tracking-tight">Reads messy handwriting</h4>
+                    <p class="text-base-muted text-sm leading-relaxed font-medium">Board formulas, scrawled notes, and photos of physical pages come through cleanly.</p>
+                </div>
+            </div>
+
+            <div class="bento-card spotlight-card p-8 flex flex-col gap-4">
+                <div class="w-12 h-12 shrink-0 bg-white/5 border border-white/10 rounded-full flex items-center justify-center relative z-10">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E7CFFF" stroke-width="2.5"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5z"/><path d="M10 2v20"/></svg>
+                </div>
+                <div class="relative z-10 mt-2">
+                    <h4 class="text-white font-bold text-xl mb-2 tracking-tight">Renders LaTeX and code</h4>
+                    <p class="text-base-muted text-sm leading-relaxed font-medium">Math and syntax-highlighted code appear formatted, right next to what you highlighted.</p>
+                </div>
+            </div>
+
+            <div class="bento-card spotlight-card p-8 flex flex-col gap-4">
+                <div class="w-12 h-12 shrink-0 bg-white/5 border border-white/10 rounded-full flex items-center justify-center relative z-10">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E7CFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                </div>
+                <div class="relative z-10 mt-2">
+                    <h4 class="text-white font-bold text-xl mb-2 tracking-tight">Reads diagrams, not text</h4>
+                    <p class="text-base-muted text-sm leading-relaxed font-medium">Flowcharts, pathways, and architecture diagrams get explained node by node.</p>
+                </div>
+            </div>
+
+            <div class="bento-card spotlight-card p-8 flex flex-col gap-4">
+                <div class="w-12 h-12 shrink-0 bg-white/5 border border-white/10 rounded-full flex items-center justify-center relative z-10">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E7CFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8-1.5 0-2.91-.32-4.14-.88L3 20l1.05-3.16A7.94 7.94 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                </div>
+                <div class="relative z-10 mt-2">
+                    <h4 class="text-white font-bold text-xl mb-2 tracking-tight">Contextual chat</h4>
+                    <p class="text-base-muted text-sm leading-relaxed font-medium">Ask a follow-up in place — Kogvio remembers exactly what you were just looking at.</p>
+                </div>
+            </div>
+
+            <div class="bento-card spotlight-card p-8 flex flex-col gap-4">
+                <div class="w-12 h-12 shrink-0 bg-white/5 border border-white/10 rounded-full flex items-center justify-center relative z-10">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E7CFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                </div>
+                <div class="relative z-10 mt-2">
+                    <h4 class="text-white font-bold text-xl mb-2 tracking-tight">No API key needed</h4>
+                    <p class="text-base-muted text-sm leading-relaxed font-medium">Kogvio runs on its own backend. Log in once and start scanning immediately.</p>
+                </div>
+            </div>
+
+            <div class="bento-card spotlight-card p-8 flex flex-col gap-4">
+                <div class="w-12 h-12 shrink-0 bg-white/5 border border-white/10 rounded-full flex items-center justify-center relative z-10">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E7CFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"></path></svg>
+                </div>
+                <div class="relative z-10 mt-2">
+                    <h4 class="text-white font-bold text-xl mb-2 tracking-tight">Works everywhere</h4>
+                    <p class="text-base-muted text-sm leading-relaxed font-medium">Chrome, Brave, or Edge — on any webpage, PDF, or local file you open.</p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- BLOG SECTION -->
+    <section id="blog" class="max-w-3xl mx-auto px-6 pb-32 relative z-10 blog-article border-t border-white/10 pt-32 fade-up">
+
+        <div class="mb-16">
+            <div class="text-kogvio-light font-bold tracking-widest uppercase text-xs mb-6">Featured guide</div>
+            <h1 class="text-5xl md:text-[80px] font-black tracking-tighter leading-[0.95] mb-8 text-white">How to read research papers without losing your mind.</h1>
+        </div>
+
+        <p>You settle yourself down to finally read that complex research paper and tell yourself that you will concentrate and stay focused. By the time you reach the third paragraph you come across a wall of dense and unfamiliar terminology.</p>
+        <p>What you do is highlight the text, open a new browser tab, go to ChatGPT, paste the paragraph, and then request a simple explanation. You read the summary, go back to the PDF and take ten seconds to look for the place where you had left off.</p>
+        <p>Once two minutes have passed, it occurs once more—another confusing concept, another new tab, and another instance of copy-and-paste.</p>
+        <p>By the time you realize it, forty-five minutes have gone by. You check your browser and see that six different AI chat windows are open, and you find out that you haven't even completed the first page of the paper. You never intended to spend all that time—you had only been trying to understand what you were reading.</p>
+        <p>The issue goes beyond the difficulty of research papers; the actual problem is that your reading workflow is flawed. Each time you leave the page to look for an explanation, you disrupt your context and lose the progress you've made. The mental energy you use from constantly managing multiple tabs is consumed more quickly than the energy used actually reading.</p>
+        <p>A better method of reading online material that is difficult to understand does not require having a dozen tabs open.</p>
+
+        <img src="blog-hero.png" alt="Clean PDF research paper with the Kogvio popup explaining text without switching tabs" class="fade-up">
+
+        <h2 class="fade-up">Why research papers feel so hard to read</h2>
+        <p>The style used in academic and technical writing is quite particular and is seldom tailored to the reader. Reading a paper is not simply about taking in words; it involves struggling with long and complicated sentences and coming across a great deal of technical jargon which the authors suppose that you already understand.</p>
+        <p>As for the visual elements, there are dense tables, complicated diagrams, and acronyms which were defined twenty pages earlier. The amount of information presented calls for your full attention. Whenever you come across a concept that you don't understand, your concentration is ruined. You can't simply move on by skimming it, since the rest of the document depends on you grasping that particular point.</p>
+
+        <h2 class="fade-up">Why the copy-paste workflow is broken</h2>
+        <p>In order to cope with dense writing, most people have resorted to the copy-and-paste method: they locate a difficult paragraph, copy it, and then paste it into a different AI tool in order to work out what it means.</p>
+        <p>But as soon as you stop using your source material, you lose a lot of focus. You cease to have a physical position on the page; when you read the explanation and then go back, you usually forget the original context of the paragraph and have to reread the section in order to get back to the point where you left off.</p>
+        <p>The issue is not simply understanding since you also have to break your concentration. You're making your brain continuously context-switch between reading the paper carefully and keeping an active control of your browser tabs.</p>
+
+        <h2 class="fade-up">What people usually try</h2>
+        <p>We generally attempt a number of different workarounds in order to overcome this friction, but they usually don't work.</p>
+        <ul>
+            <li><strong>Looking up specific terms:</strong> While this is useful for getting quick definitions, a Google search seldom explains how the term applies to the particular context of the paper you are reading.</li>
+            <li><strong>Reading summaries:</strong> Using reading summaries is useful for getting a broad overview of the material, but they provide no assistance when you are having trouble with a key, detailed methodology section that is in the middle of the text.</li>
+            <li><strong>Using ChatGPT in a different tab:</strong> AI chat tools are extremely intelligent and helpful; the problem doesn't lie with the AI but with the interface. Having a separate chat window keeps it entirely isolated from the work you are doing on your document and makes you have to act as an intermediary between the document and the AI.</li>
+        </ul>
+
+        <h2 class="fade-up">The better workflow: understanding in context</h2>
+        <p>The lack of context is the missing element in the entire process. When you are reading a paper, the explanation should be included in the paper and placed right beside the text which you are having difficulty with.</p>
+        <p>That is precisely the reason why I developed Kogvio.</p>
+        <p>Rather than opening a new tab, you remain in your current location. As soon as you come across a section of dense text, you simply highlight it and press a keyboard shortcut. A neat and simple window then appears directly on top of your page.</p>
+        <p>You are free to ask a question, after which you will receive a straightforward explanation in plain English about the specific paragraph that you highlighted and then be able to read the answer. Once you have finished, just close the section and then read the following line in your PDF.</p>
+        <p>You never switched to another tab, you never lost your position on the page, and you maintained your state of flow entirely.</p>
+
+        <img src="blog-highlight.png" alt="A confusing sentence highlighted with a simple translated response right alongside it" class="fade-up">
+
+        <h2 class="fade-up">How this looks in practice</h2>
+        <p>This on-screen workflow alters the way you interact with nearly any difficult content available online. Below is an example of how it appears in ordinary situations:</p>
+        <ul>
+            <li>When you're working through the methodology section of a research paper and come across a highly technical statistical model, rather than trying to figure out what it means, you highlight the paragraph and then immediately see a simplified explanation next to the text.</li>
+            <li>You are looking at a complicated pathology diagram as part of your exam preparation and there are a dozen overlapping pathways. You highlight the chart and ask, "What is the difference between the in vitro and in vivo pathways here?" and receive the precise answer without having to leave the study material.</li>
+            <li>Fragmented technical documentation: When you're learning a new framework and the official documentation is spread out over five separate pages, if you highlight the confusing API instructions you will immediately receive a contextual explanation of how to implement them.</li>
+            <li>You're looking at a large and disordered section of code on GitHub. Rather than copying all 200 lines and pasting them into another chat window, you highlight the code block on your screen and ask, "What is this function actually doing?"</li>
+        </ul>
+
+        <img src="blog-code.png" alt="Kogvio analyzing a medical diagram or complex C++ code block" class="fade-up">
+
+        <h2 class="fade-up">Why this workflow is better</h2>
+        <p>Reading becomes a lot faster if you cease to use your browser as if it were a copy-and-paste machine. You suffer from less mental disruption since you're not having to manage windows and as a result your brain can remain completely concentrated on the topic in question. This in turn causes you to understand the material more quickly and results in much better long-term memory. Rather than merely organising the content you actually spend your time learning it.</p>
+
+        <h2 class="fade-up">What is Kogvio?</h2>
+        <p>Kogvio is a Chrome extension that is native to the browser and is designed to explain complicated text and diagrams while keeping you in the same context. It functions as an intelligent on-screen overlay which works directly on webpages, online PDFs, and local files that are opened in your browser.</p>
+
+        <h2 class="fade-up">Who this is for</h2>
+        <p>This workflow is designed for anyone who reads difficult content daily:</p>
+        <ul>
+            <li>University students reading PDFs of dense textbooks.</li>
+            <li>Researchers going through technical papers.</li>
+            <li>Developers reading documentation and fixing code bugs.</li>
+            <li>Medical students learning complex biological pathways.</li>
+        </ul>
+
+        <img src="blog-chat.png" alt="Kogvio interface showing a user asking a follow-up question for continuous conversation" class="fade-up">
+
+        <h2 class="fade-up">How to start</h2>
+        <p>It is simple to switch to this workflow.</p>
+        <ul>
+            <li>Open the PDF or webpage in Chrome.</li>
+            <li>Call attention to the confusing text, code, or diagram.</li>
+            <li>To open the overlay press <strong>Ctrl + Shift + E</strong> (or Cmd + Shift + E on Mac).</li>
+            <li>Submit your question and then read the simplified explanation.</li>
+            <li>Close the overlay and then continue reading.</li>
+        </ul>
+
+        <h2 class="fade-up">Stop leaving the page</h2>
+        <p>The internet provides us with unlimited access to information, but proper understanding shouldn't demand that you break your concentration. Learning is most effective when you remain in the state of flow. If your daily activity involves reading online material that is dense and difficult, then Kogvio is designed to fit your workflow.</p>
+
+        <div class="mt-20 text-center fade-up">
+            <a id="blog-action-btn" href="https://chromewebstore.google.com/detail/kogvio/mllapkmnhfgoblbcajnbniocicnahdnj" target="_blank" class="btn-apple-primary text-xl inline-block shadow-[0_15px_30px_rgba(255,255,255,0.2)] hover:scale-105 transition-all">
+                <span id="blog-action-text">Add Kogvio to Chrome — it's free</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- ELITE PRICING -->
+    <section id="pricing" class="max-w-5xl mx-auto px-6 pb-32 fade-up border-t border-white/10 relative z-10 pt-32">
+        <h2 class="text-5xl md:text-7xl font-black text-center mb-20 tracking-tighter text-white">Simple pricing.</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- FREE TIER -->
+            <div class="bento-card p-12 flex flex-col relative z-10">
+                <h3 class="text-3xl font-bold mb-2 text-white tracking-tight">Starter</h3>
+                <div class="text-7xl font-black mb-4 text-white tracking-tighter">₹0<span class="text-2xl text-base-muted font-bold tracking-normal">/mo</span></div>
+                <p class="text-base-muted mb-10 text-lg leading-relaxed flex-grow">Essential AI vision for individuals and quick daily tasks.</p>
+                <ul class="space-y-6 mb-14 text-white text-lg font-medium">
+                    <li class="flex items-center gap-4"><svg class="w-6 h-6 text-base-muted" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg> 5 AI scans per day</li>
+                    <li class="flex items-center gap-4"><svg class="w-6 h-6 text-base-muted" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg> Standard reasoning model</li>
+                    <li class="flex items-center gap-4"><svg class="w-6 h-6 text-base-muted" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg> Cross-platform support</li>
+                </ul>
+                <button id="start-free-btn" class="w-full py-5 rounded-full bg-[#121214] hover:bg-[#1E1E24] border border-white/10 text-white font-bold transition-colors text-xl relative z-10">
+                    Start free
+                </button>
+            </div>
+
+            <!-- PRO TIER -->
+            <div class="bento-card spotlight-card p-12 flex flex-col border-kogvio-DEFAULT/40 relative z-10" style="background: rgba(15, 8, 22, 0.8);">
+                <div class="absolute inset-0 bg-gradient-to-b from-kogvio-DEFAULT/15 to-transparent opacity-60 pointer-events-none"></div>
+                <div class="absolute top-0 right-0 bg-white text-black text-xs font-black px-5 py-2.5 rounded-bl-3xl uppercase tracking-widest shadow-xl">Most popular</div>
+                
+                <h3 class="text-3xl font-bold mb-2 text-kogvio-light tracking-tight relative z-10">Kogvio Pro</h3>
+                <div class="text-7xl font-black mb-4 text-white tracking-tighter relative z-10">₹199<span class="text-2xl text-base-muted font-bold tracking-normal">/mo</span></div>
+                <p class="text-base-muted mb-10 text-lg leading-relaxed flex-grow relative z-10">Unlimited scans, the Context Tray, and Custom Prompts for the heaviest reading days.</p>
+                <ul class="space-y-6 mb-14 text-white text-lg font-medium relative z-10">
+                    <li class="flex items-center gap-4"><svg class="w-6 h-6 text-kogvio-DEFAULT drop-shadow-[0_0_10px_rgba(178,107,255,0.8)]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg> Unlimited AI scans</li>
+                    <li class="flex items-center gap-4"><svg class="w-6 h-6 text-kogvio-DEFAULT drop-shadow-[0_0_10px_rgba(178,107,255,0.8)]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg> Context Tray — multi-image scans</li>
+                    <li class="flex items-center gap-4"><svg class="w-6 h-6 text-kogvio-DEFAULT drop-shadow-[0_0_10px_rgba(178,107,255,0.8)]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg> Unlimited saved Custom Prompts</li>
+                    <li class="flex items-center gap-4"><svg class="w-6 h-6 text-kogvio-DEFAULT drop-shadow-[0_0_10px_rgba(178,107,255,0.8)]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg> Advanced vision engine</li>
+                    <li class="flex items-center gap-4"><svg class="w-6 h-6 text-kogvio-DEFAULT drop-shadow-[0_0_10px_rgba(178,107,255,0.8)]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg> Unlimited chat history</li>
+                </ul>
+
+                <div class="flex flex-col items-center gap-4 relative z-10 w-full mt-auto">
+                    <button id="landing-upgrade-btn" class="w-full py-5 rounded-full btn-premium text-xl">
+                        Upgrade to Pro
+                    </button>
+
+                    <!-- Fail-safe PayPal link -->
+                    <button id="paypal-fallback-btn" class="w-full py-4 rounded-full border border-white/20 text-sm text-[#A1A1AA] hover:text-white hover:bg-white/10 transition-colors flex items-center justify-center gap-2 font-semibold">
+                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 3.72a.77.77 0 0 1 .76-.642h5.932c2.298 0 4.241.517 5.23 1.748.887 1.1 1.026 2.656.452 4.966-.72 2.906-2.6 4.604-5.282 4.604H9.062a.642.641 0 0 0-.633.541l-.988 5.76a.642.641 0 0 1-.365.64z"/></svg>
+                        Pay via PayPal ($2.50 USD)
+                    </button>
+
+                    <!-- Smart PayPal SDK Container -->
+                    <div id="paypal-button-container" class="w-full relative z-10" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="faq" class="max-w-4xl mx-auto px-6 py-32 fade-up border-t border-white/10 relative z-10">
+        <h2 class="text-5xl md:text-6xl font-black text-center mb-16 tracking-tighter text-white">Common questions.</h2>
+        <div class="space-y-4">
+
+            <div class="bento-card hover:transform-none">
+                <button class="faq-btn w-full p-8 md:p-10 flex justify-between items-center text-left focus:outline-none relative z-10">
+                    <span class="font-bold text-white text-2xl tracking-tight">Does it work on Mac and Windows?</span>
+                    <span class="faq-icon text-3xl font-light text-[#A1A1AA] transition-transform">+</span>
+                </button>
+                <div class="faq-grid relative z-10">
+                    <div class="faq-inner">
+                        <p class="text-[#A1A1AA] text-lg px-8 md:px-10 pb-10 leading-relaxed font-medium">Yes. Kogvio is a Google Chrome extension. As long as you're using Chrome, Brave, or Edge on your computer, it works regardless of your operating system.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bento-card hover:transform-none">
+                <button class="faq-btn w-full p-8 md:p-10 flex justify-between items-center text-left focus:outline-none relative z-10">
+                    <span class="font-bold text-white text-2xl tracking-tight">What's the difference between the Context Tray and asking one question at a time?</span>
+                    <span class="faq-icon text-3xl font-light text-[#A1A1AA] transition-transform">+</span>
+                </button>
+                <div class="faq-grid relative z-10">
+                    <div class="faq-inner">
+                        <p class="text-[#A1A1AA] text-lg px-8 md:px-10 pb-10 leading-relaxed font-medium">A single highlight only sees that one image. The Context Tray holds several images at once — multiple pages, diagrams, or screenshots — so you can ask a question that depends on all of them together, like whether two pages of notes agree with each other.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bento-card hover:transform-none">
+                <button class="faq-btn w-full p-8 md:p-10 flex justify-between items-center text-left focus:outline-none relative z-10">
+                    <span class="font-bold text-white text-2xl tracking-tight">Can it read my messy handwriting?</span>
+                    <span class="faq-icon text-3xl font-light text-[#A1A1AA] transition-transform">+</span>
+                </button>
+                <div class="faq-grid relative z-10">
+                    <div class="faq-inner">
+                        <p class="text-[#A1A1AA] text-lg px-8 md:px-10 pb-10 leading-relaxed font-medium">Yes. Our vision model is built to read bad handwriting, scanned photos of physical notes, and messy equations.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bento-card hover:transform-none">
+                <button class="faq-btn w-full p-8 md:p-10 flex justify-between items-center text-left focus:outline-none relative z-10">
+                    <span class="font-bold text-white text-2xl tracking-tight">Do I need my own ChatGPT or Gemini account?</span>
+                    <span class="faq-icon text-3xl font-light text-[#A1A1AA] transition-transform">+</span>
+                </button>
+                <div class="faq-grid relative z-10">
+                    <div class="faq-inner">
+                        <p class="text-[#A1A1AA] text-lg px-8 md:px-10 pb-10 leading-relaxed font-medium">No API keys required. Kogvio runs entirely on our own dedicated backend servers. You just log in to Kogvio and start scanning immediately.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bento-card hover:transform-none">
+                <button class="faq-btn w-full p-8 md:p-10 flex justify-between items-center text-left focus:outline-none relative z-10">
+                    <span class="font-bold text-white text-2xl tracking-tight">How do I pay for Pro?</span>
+                    <span class="faq-icon text-3xl font-light text-[#A1A1AA] transition-transform">+</span>
+                </button>
+                <div class="faq-grid relative z-10">
+                    <div class="faq-inner">
+                        <p class="text-[#A1A1AA] text-lg px-8 md:px-10 pb-10 leading-relaxed font-medium">We support all major payment methods securely. You can upgrade using debit/credit cards, netbanking, or mobile payment apps.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Product Hunt Embed Section -->
+    <section class="max-w-3xl mx-auto px-6 pb-40 fade-up relative z-10 flex flex-col items-center justify-center">
+        <h3 class="text-xl font-bold text-[#A1A1AA] mb-8 tracking-tight">Support us on Product Hunt</h3>
+
+        <div style="font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, sans-serif; border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 24px; max-width: 500px; background: #050505; width: 100%; box-shadow: 0 30px 60px rgba(0,0,0,0.8);">
+            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
+                <img alt="Kogvio" src="https://ph-files.imgix.net/b0cdfa2a-602c-47ba-b367-ff328c933a2d.png?auto=compress,format&amp;codec=mozjpeg&amp;cs=strip&amp;fit=crop&amp;h=80&amp;w=80" style="width: 72px; height: 72px; border-radius: 16px; object-fit: cover; flex-shrink: 0;">
+                <div style="flex: 1 1 0%; min-width: 0px;">
+                    <h3 style="margin: 0px; font-size: 20px; font-weight: 700; color: #FFFFFF; line-height: 1.3; white-space: nowrap;">Kogvio</h3>
+                    <p style="margin: 4px 0px 0px; font-size: 15px; color: #A1A1AA; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical;">Understand anything online without leaving the page.</p>
+                </div>
+            </div>
+            <a href="https://www.producthunt.com/products/kogvio?embed=true&amp;utm_source=embed&amp;utm_medium=post_embed" target="_blank" rel="noopener" style="display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 16px; padding: 14px 20px; background: #FFFFFF; color: #000000; text-decoration: none; border-radius: 999px; font-size: 16px; font-weight: 700; transition: transform 0.2s ease;">Check it out on Product Hunt →</a>
+        </div>
+    </section>
+
+    <footer class="w-full border-t border-white/10 bg-[#000000] py-16 relative z-10">
+        <div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
+            <div class="flex items-center gap-3">
+                <img src="icon48.png" alt="Kogvio" class="w-6 h-6 object-contain opacity-80">
+                <span class="text-[#A1A1AA] font-bold tracking-tight text-base">Kogvio. Designed for deep focus.</span>
+            </div>
+            <div class="flex flex-wrap justify-center gap-8 text-base font-medium text-[#A1A1AA]">
+                <a href="privacy.html" class="hover:text-white transition-colors">Privacy</a>
+                <a href="terms.html" class="hover:text-white transition-colors">Terms</a>
+                <a href="refund.html" class="hover:text-white transition-colors">Refunds</a>
+                <a href="mailto:kogvio.team@gmail.com" class="hover:text-white transition-colors">Contact</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- EXACT UNTOUCHED JAVASCRIPT FROM USER -->
+    <script>
+        const canvas = document.getElementById('dust-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height, dustParticles;
+
+        let mouse = { x: -1000, y: -1000 };
+        window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+        window.addEventListener('mouseout', () => { mouse.x = -1000; mouse.y = -1000; });
+
+        function initDust() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            dustParticles = [];
+            for(let i = 0; i < 150; i++) {
+                dustParticles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    baseVx: (Math.random() - 0.5) * 0.2,
+                    baseVy: (Math.random() * -0.3) - 0.1,
+                    vx: 0,
+                    vy: 0,
+                    size: Math.random() * 1.5 + 0.5,
+                    alpha: Math.random() * 0.5 + 0.15
+                });
+                dustParticles[i].vx = dustParticles[i].baseVx;
+                dustParticles[i].vy = dustParticles[i].baseVy;
+            }
+        }
+        window.addEventListener('resize', initDust);
+
+        function drawDust() {
+            ctx.clearRect(0, 0, width, height);
+
+            dustParticles.forEach(p => {
+                let dx = mouse.x - p.x;
+                let dy = mouse.y - p.y;
+                let dist = Math.sqrt(dx * dx + dy * dy);
+                let maxDist = 120;
+
+                if (dist < maxDist) {
+                    let force = (maxDist - dist) / maxDist;
+                    p.vx -= (dx / dist) * force * 0.6;
+                    p.vy -= (dy / dist) * force * 0.6;
+                }
+
+                p.vx += (p.baseVx - p.vx) * 0.05;
+                p.vy += (p.baseVy - p.vy) * 0.05;
+
+                p.x += p.vx;
+                p.y += p.vy;
+
+                if (p.y < 0) { p.y = height; p.x = Math.random() * width; }
+                if (p.y > height) { p.y = 0; }
+                if (p.x < 0) p.x = width;
+                if (p.x > width) p.x = 0;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(200, 140, 255, ${p.alpha})`;
+                ctx.fill();
+            });
+            requestAnimationFrame(drawDust);
+        }
+        initDust();
+        drawDust();
+
+        const cards = document.querySelectorAll('.spotlight-card');
+        cards.forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+
+        const mainNav = document.getElementById('main-nav');
+        const navContainer = document.getElementById('nav-container');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 20) {
+                mainNav.classList.remove('bg-transparent', 'border-transparent');
+                mainNav.classList.add('bg-[#07040A]/70', 'border-white/10', 'backdrop-blur-xl');
+                navContainer.classList.remove('h-20');
+                navContainer.classList.add('h-16');
+            } else {
+                mainNav.classList.remove('bg-[#07040A]/70', 'border-white/10', 'backdrop-blur-xl');
+                mainNav.classList.add('bg-transparent', 'border-transparent');
+                navContainer.classList.remove('h-16');
+                navContainer.classList.add('h-20');
+            }
+        });
+
+        const observer = new IntersectionObserver((entries, obs) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    obs.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.05, rootMargin: "0px 0px -50px 0px" });
+        document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+        document.querySelectorAll('.faq-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const grid = button.nextElementSibling;
+                const icon = button.querySelector('.faq-icon');
+                const isOpen = grid.classList.contains('open');
+
+                document.querySelectorAll('.faq-grid').forEach(g => g.classList.remove('open'));
+                document.querySelectorAll('.faq-icon').forEach(i => {
+                    i.style.transform = 'rotate(0deg)';
+                    i.style.color = '#A1A1AA';
+                });
+
+                if (!isOpen) {
+                    grid.classList.add('open');
+                    icon.style.transform = 'rotate(45deg)';
+                    icon.style.color = '#FFFFFF';
+                }
+            });
+        });
+
+        let isUserPremium = false;
+
+        const clerkPubKey = 'pk_live_Y2xlcmsua29ndmlvLmNvbSQ';
+        const script = document.createElement('script');
+        script.setAttribute('data-clerk-publishable-key', clerkPubKey);
+        script.async = true;
+        script.src = `https://cdn.jsdelivr.net/npm/@clerk/clerk-js@4/dist/clerk.browser.js`;
+        script.crossOrigin = 'anonymous';
+
+        script.addEventListener('load', async function () {
+            try {
+                await window.Clerk.load({});
+
+                const loginBtn = document.getElementById('login-btn');
+                const getStartedBtn = document.getElementById('get-started-btn');
+                const userProfileDiv = document.getElementById('user-profile-button');
+                const navDashboardBtn = document.getElementById('nav-dashboard-btn');
+
+                const heroActionBtn = document.getElementById('hero-action-btn');
+                const heroActionText = document.getElementById('hero-action-text');
+                const heroActionIcon = document.getElementById('hero-action-icon');
+
+                const blogActionBtn = document.getElementById('blog-action-btn');
+                const blogActionText = document.getElementById('blog-action-text');
+
+                const upgradeBtn = document.getElementById('landing-upgrade-btn');
+                const paypalFallbackBtn = document.getElementById('paypal-fallback-btn'); 
+                const paypalContainer = document.getElementById('paypal-button-container');
+                const freeBtn = document.getElementById('start-free-btn');
+
+                if (window.Clerk.user) {
+                    if(loginBtn) loginBtn.style.display = 'none';
+                    if(getStartedBtn) getStartedBtn.style.display = 'none';
+                    window.Clerk.mountUserButton(userProfileDiv);
+
+                    // --- INSTANT UI UPDATE FIX ---
+                    if(navDashboardBtn) {
+                        navDashboardBtn.classList.remove('hidden');
+                        navDashboardBtn.onclick = () => window.location.href = 'dashboard.html';
+                    }
+                    if(heroActionBtn) {
+                        heroActionText.innerText = "Open workspace";
+                        if(heroActionIcon) heroActionIcon.innerHTML = `<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>`;
+                        heroActionBtn.onclick = (e) => { e.preventDefault(); window.location.href = 'dashboard.html'; }
+                    }
+                    if(blogActionBtn && blogActionText) {
+                        blogActionText.innerText = "Open workspace";
+                        blogActionBtn.onclick = (e) => { e.preventDefault(); window.location.href = 'dashboard.html'; }
+                    }
+                    if (freeBtn) {
+                        freeBtn.innerText = "Open dashboard";
+                        freeBtn.onclick = (e) => { e.preventDefault(); window.location.href = 'dashboard.html'; }
+                    }
+
+                    // --- ASYNC PRICING CHECK (DOES NOT BLOCK UI) ---
+                    try {
+                        const token = await window.Clerk.session.getToken();
+                        fetch("https://aura-scholar-backend.onrender.com/api/history", {
+                            headers: { "Authorization": `Bearer ${token}` }
+                        }).then(res => {
+                            if(res.ok) return res.json();
+                            throw new Error("Failed");
+                        }).then(data => {
+                            isUserPremium = data.is_premium;
+                            if (isUserPremium) {
+                                if (upgradeBtn) {
+                                    upgradeBtn.innerText = "Go to vault";
+                                    upgradeBtn.classList.add("shadow-[0_0_20px_rgba(178,107,255,0.5)]");
+                                    upgradeBtn.onclick = (e) => { e.preventDefault(); window.location.href = 'dashboard.html'; }
+                                }
+                                if (paypalFallbackBtn) paypalFallbackBtn.style.display = 'none';
+                                if (paypalContainer) paypalContainer.style.display = 'none';
+                            } else {
+                                if (upgradeBtn) {
+                                    upgradeBtn.onclick = (e) => {
+                                        e.preventDefault();
+                                        const clerkId = window.Clerk.user.id;
+                                        const rzpFullUrl = "https://rzp.io/rzp/VfzMqvb9";
+                                        window.open(`${rzpFullUrl}?notes[clerk_id]=${clerkId}`, '_blank');
+                                    }
+                                }
+                                if (paypalFallbackBtn) {
+                                    paypalFallbackBtn.style.display = 'flex';
+                                    paypalFallbackBtn.onclick = (e) => {
+                                        e.preventDefault();
+                                        const paypalUrl = "https://www.paypal.com/ncp/payment/434MRNXD8CBYE";
+                                        window.open(paypalUrl, '_blank');
+                                    };
+                                }
+                                if (paypalContainer) {
+                                    if (window.paypal && window.paypal.Buttons) {
+                                        paypalContainer.style.display = 'block';
+                                        if (paypalFallbackBtn) paypalFallbackBtn.style.display = 'none';
+
+                                        paypalContainer.innerHTML = '';
+                                        window.paypal.Buttons({
+                                            style: { layout: 'horizontal', color: 'white', shape: 'rect', label: 'pay', height: 40 },
+                                            createOrder: function(data, actions) {
+                                                return actions.order.create({
+                                                    purchase_units: [{
+                                                        amount: { value: '2.50' },
+                                                        custom_id: window.Clerk.user.id
+                                                    }]
+                                                });
+                                            },
+                                            onApprove: function(data, actions) {
+                                                return actions.order.capture().then(function(details) {
+                                                    alert('Payment successful! Your Kogvio Pro account is now active for 30 days.');
+                                                    window.location.href = 'dashboard.html';
+                                                });
+                                            }
+                                        }).render('#paypal-button-container');
+                                    }
+                                }
+                            }
+                        }).catch(e => console.error("Pricing check failed:", e));
+
+                    } catch (e) {
+                        console.error("Failed to fetch token", e);
+                    }
+
+                } else {
+                    if(loginBtn) loginBtn.onclick = () => window.Clerk.openSignIn({ redirectUrl: 'https://kogvio.com/dashboard.html' });
+                    if(getStartedBtn) getStartedBtn.onclick = () => window.Clerk.openSignUp({ redirectUrl: 'https://kogvio.com/dashboard.html' });
+
+                    if(heroActionBtn) heroActionBtn.onclick = null;
+                    if(blogActionBtn) blogActionBtn.onclick = null;
+
+                    if (upgradeBtn) {
+                        upgradeBtn.onclick = (e) => { e.preventDefault(); window.Clerk.openSignIn({ redirectUrl: 'https://kogvio.com/dashboard.html' }); }
+                    }
+
+                    if (paypalContainer) paypalContainer.style.display = 'none';
+                    if (paypalFallbackBtn) {
+                        paypalFallbackBtn.style.display = 'flex';
+                        paypalFallbackBtn.onclick = (e) => {
+                            e.preventDefault();
+                            window.Clerk.openSignIn({ redirectUrl: 'https://kogvio.com/dashboard.html' });
+                        }
+                    }
+
+                    if (freeBtn) {
+                        freeBtn.onclick = (e) => { e.preventDefault(); window.Clerk.openSignUp({ redirectUrl: 'https://kogvio.com/dashboard.html' }); }
+                    }
+                }
+            } catch (err) {
+                console.error("Clerk failed to initialize:", err);
+            }
+        });
+        document.body.appendChild(script);
+    </script>
+</body>
+</html>

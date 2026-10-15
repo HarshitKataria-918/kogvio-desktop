@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Kogvio Capture</title>
+    <style>
+        body { margin: 0; overflow: hidden; cursor: crosshair; user-select: none; background: transparent; }
+        /* The frozen screenshot of your desktop */
+        #bg-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+        /* The dark overlay */
+        #dark-bg { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.4); z-index: 1; pointer-events: none; }
+        /* The glowing selection box */
+        #selection {
+            position: absolute; border: 2px solid #B975FF; display: none; z-index: 2; pointer-events: none;
+            /* This shadow darkens everything OUTSIDE the box, making the inside bright */
+            box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+    <img id="bg-img">
+    <div id="dark-bg"></div>
+    <div id="selection"></div>
+
+    <script>
+        let startX, startY, isDrawing = false;
+        const selection = document.getElementById('selection');
+        const darkBg = document.getElementById('dark-bg');
+        const bgImg = document.getElementById('bg-img');
+
+        // Receive the frozen screenshot from the main process
+        window.electronAPI.onScreenImage((imageUri) => {
+            bgImg.src = imageUri;
+        });
+
+        // Start drawing the box
+        window.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return; // Only left-click
+            isDrawing = true;
+            startX = e.clientX; startY = e.clientY;
+            darkBg.style.display = 'none'; // Hide the general dark overlay
+            selection.style.display = 'block'; // Show the box
+            selection.style.left = startX + 'px';
+            selection.style.top = startY + 'px';
+            selection.style.width = '0px';
+            selection.style.height = '0px';
+        });
+
+        // Drag to resize
+        window.addEventListener('mousemove', (e) => {
+            if (!isDrawing) return;
+            const currentX = e.clientX; const currentY = e.clientY;
+            const x = Math.min(startX, currentX);
+            const y = Math.min(startY, currentY);
+            const w = Math.abs(currentX - startX);
+            const h = Math.abs(currentY - startY);
+            selection.style.left = x + 'px';
+            selection.style.top = y + 'px';
+            selection.style.width = w + 'px';
+            selection.style.height = h + 'px';
+        });
+
+        // Release to crop and capture
+        window.addEventListener('mouseup', () => {
+            if (!isDrawing) return;
+            isDrawing = false;
+            
+            const rect = selection.getBoundingClientRect();
+            // Cancel if the box is too small (accidental click)
+            if (rect.width < 10 || rect.height < 10) {
+                window.electronAPI.closeSnip();
+                return;
+            }
+
+            // Draw the cropped section to an invisible canvas
+            const canvas = document.createElement('canvas');
+            canvas.width = rect.width; canvas.height = rect.height;
+            const ctx = canvas.getContext('2d');
+            
+            // Scale correctly for 4K / Retina displays
+            const scaleX = bgImg.naturalWidth / window.innerWidth;
+            const scaleY = bgImg.naturalHeight / window.innerHeight;
+            
+            ctx.drawImage(
+                bgImg, 
+                rect.left * scaleX, rect.top * scaleY, rect.width * scaleX, rect.height * scaleY, 
+                0, 0, rect.width, rect.height
+            );
+            
+            // Convert to Base64 and send back to the main app
+            const base64Image = canvas.toDataURL('image/png');
+            window.electronAPI.snipComplete(base64Image);
+        });
+
+        // Cancel on Escape key
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') window.electronAPI.closeSnip();
+        });
+    </script>
+</body>
+</html>
